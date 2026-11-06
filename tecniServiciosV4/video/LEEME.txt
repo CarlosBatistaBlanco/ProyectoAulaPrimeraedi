@@ -1,0 +1,17 @@
+Coloca aquí tu video de encabezado con el nombre exacto: encabezado.mp4
+
+Recomendaciones:
+- Formato: MP4 (códec H.264) para máxima compatibilidad con navegadores.
+- Duración corta: 10-20 segundos en bucle (loop) es suficiente, ya que el
+  video se reproduce en automático, sin sonido y de forma repetida.
+- Resolución sugerida: 1920x1080, peso ideal menor a 15 MB para que cargue rápido.
+- Contenido sugerido: cámaras grabando, un centro de monitoreo, instalación
+  de equipos, o una ciudad de noche con cámaras de seguridad.
+
+Mientras no agregues el video, el encabezado (hero) se ve perfecto igual,
+porque muestra la imagen de fondo img/servicios/poster-hero.jpg.
+
+Esto se define en index.php:
+    <video class="hero__video" autoplay muted loop playsinline poster="img/servicios/poster-hero.jpg">
+        <source src="video/encabezado.mp4" type="video/mp4">
+    </video>

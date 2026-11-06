@@ -1,0 +1,8 @@
+Esta carpeta queda lista por si en el futuro quieres agregar:
+- Un audio de alerta para el panel de monitoreo.
+- Una notificación de sonido cuando llega un nuevo pedido o mensaje.
+- Música de fondo opcional (no recomendado para páginas profesionales).
+
+Ejemplo de cómo usar un archivo de audio en JS (js/main.js):
+    const sonidoAlerta = new Audio('audio/alerta.mp3');
+    sonidoAlerta.play();
