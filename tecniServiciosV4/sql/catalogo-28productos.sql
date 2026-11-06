@@ -45,12 +45,5 @@ INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio,
 (4,4,'Fuente de Poder Centralizada','ACC-FUENTE-001','Caja metálica con llave, 9 salidas de 12V 10A con fusibles independientes para proteger las cámaras.',99900,0.00,25,5,12,19.00,'img/productos/accesorios-05.jpg',0,1),
 (4,4,'Soporte de Camara Pared','ACC-SOPORTE-001','Brazo metálico con paso interno de cables para cámaras domo o bala. Resistente a la intemperie.',29900,20.00,45,10,12,19.00,'img/productos/accesorios-06.jpg',0,1),
 (4,4,'Caja de Paso Estanca IP65','ACC-CAJA-001','Caja de conexiones para ocultar cables y conectores en exteriores protegiéndolos de agua y polvo.',14900,0.00,120,25,12,19.00,'img/productos/accesorios-07.jpg',0,1);
-(4,4,'Disco Duro Vigilancia 2TB','HDD-2TB-001','Disco duro de 2 TB optimizado para grabación continua 24/7. Compatible con DVR y NVR estándar.',219900,30,5,12,19.00,'img/productos/accesorios-01.jpg',0,1),
-(4,4,'Fuente de Poder 12V','ACC-FUENTE-001','Fuente regulada de 12 V con protección contra sobrecargas y cortocircuitos. Alimenta hasta 8 cámaras.',89900,45,10,12,19.00,'img/productos/accesorios-02.jpg',0,1),
-(4,4,'Conector RJ45 de Videos Balun','ACC-BALUN-001','Par de baluns que transmite video por cable UTP hasta 300 m sin pérdida de calidad.',39900,70,10,12,19.00,'img/productos/accesorios-03.jpg',0,1),
-(4,1,'Grabador NVR de 8 Canales','ACC-NVR-8CH-001','Grabador en red para 8 canales IP con soporte de 4K, disco de 1 TB incluido y acceso remoto desde app.',949900,9,3,12,19.00,'img/productos/accesorios-04.jpg',1,1),
-(4,4,'Soporte de Camara Pared','ACC-SOPORTE-001','Brazo metálico ajustable para montaje en pared con acabado anticorrosivo. Ajuste de inclinación de 90°.',29900,90,15,12,19.00,'img/productos/accesorios-05.jpg',0,1),
-(4,4,'Caja de Proteccion IP66','ACC-CAJA-001','Gabeta de unión con grado de protección IP66 para exteriores. Protege conectores y empalmes.',44900,60,10,12,19.00,'img/productos/accesorios-06.jpg',0,1),
-(4,4,'UPS Respaldo para Equipos','ACC-UPS-001','Unidad de respaldo de energía que mantiene cámaras y grabador funcionando durante cortes eléctricos.',349900,11,5,12,19.00,'img/productos/accesorios-07.jpg',0,1);
 
 COMMIT;

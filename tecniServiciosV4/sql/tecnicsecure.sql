@@ -312,6 +312,17 @@ UPDATE productos SET id_marca = 4, sku = 'ALM-PERI-001' WHERE nombre = 'Alarma P
 UPDATE productos SET id_marca = 3, sku = 'CTRL-BIO-001' WHERE nombre = 'Control de Acceso Biométrico';
 UPDATE productos SET id_marca = 4, sku = 'HDD-2TB-001' WHERE nombre = 'Disco Duro Vigilancia 2TB';
 
+-- Descuentos activos en productos en oferta
+UPDATE productos SET descuento_pct = 15.00 WHERE sku = 'CAM-DOM-4K-001' OR nombre LIKE '%Domo 4K%';
+UPDATE productos SET descuento_pct = 20.00 WHERE sku = 'CAM-PTZ-360-001' OR nombre LIKE '%PTZ 360%';
+UPDATE productos SET descuento_pct = 10.00 WHERE sku = 'CAM-CLRVU-001' OR nombre LIKE '%ColorVu%';
+UPDATE productos SET descuento_pct = 25.00 WHERE sku = 'ALM-PERI-001' OR nombre LIKE '%Perimetral%';
+UPDATE productos SET descuento_pct = 15.00 WHERE sku = 'ALM-PIR-001' OR nombre LIKE '%Sensor%';
+UPDATE productos SET descuento_pct = 18.00 WHERE sku = 'CTRL-BIO-001' OR nombre LIKE '%Biometrico%';
+UPDATE productos SET descuento_pct = 10.00 WHERE sku = 'CTRL-PORTERO-001' OR nombre LIKE '%Videoportero%';
+UPDATE productos SET descuento_pct = 12.00 WHERE sku = 'ACC-HDD-2TB-001' OR sku = 'HDD-2TB-001' OR nombre LIKE '%Disco Duro%';
+UPDATE productos SET descuento_pct = 20.00 WHERE sku = 'ACC-SOPORTE-001' OR nombre LIKE '%Soporte%';
+
 -- Registra el stock inicial de cada producto como un movimiento de entrada (arranque del Kardex)
 INSERT INTO inventario_movimientos (id_producto, tipo, cantidad, stock_resultante, motivo)
 SELECT id_producto, 'entrada', stock, stock, 'Inventario inicial de apertura' FROM productos;

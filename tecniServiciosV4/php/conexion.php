@@ -59,10 +59,49 @@ try {
         // Respaldo automático: si el usuario 'tecniservicios' no existe (ej. instalación estándar de XAMPP con root vacío)
         $pdo = new PDO($dsn, 'root', '', $opciones);
     }
+
+    // Auto-verificación de descuentos para que aparezcan en la máquina de cualquier compañero o docente
+    asegurarDescuentosEnBD($pdo);
 } catch (PDOException $e) {
     // Si la base de datos no existe o hay error de conexión, se detiene todo
     die('Error de conexión a la base de datos: ' . $e->getMessage() .
         '<br>Verifica que Apache y MySQL estén encendidos en XAMPP y que importaste sql/tecnicsecure.sql');
+}
+
+/**
+ * asegurarDescuentosEnBD()
+ * Garantiza que la columna descuento_pct exista en la tabla productos
+ * y que los productos en oferta tengan sus descuentos activos,
+ * incluso si un compañero o docente importó una versión antigua de la base de datos.
+ */
+function asegurarDescuentosEnBD(PDO $pdo): void {
+    static $yaVerificado = false;
+    if ($yaVerificado) return;
+    $yaVerificado = true;
+
+    try {
+        $col = $pdo->query("SHOW COLUMNS FROM productos LIKE 'descuento_pct'")->fetch();
+        if (!$col) {
+            $pdo->exec("ALTER TABLE productos ADD COLUMN descuento_pct DECIMAL(5,2) DEFAULT 0");
+        }
+
+        $descuentosActivos = (int)$pdo->query("SELECT COUNT(*) FROM productos WHERE descuento_pct > 0")->fetchColumn();
+        if ($descuentosActivos === 0) {
+            $pdo->exec("
+                UPDATE productos SET descuento_pct = 15 WHERE id_producto = 1 OR nombre LIKE '%Domo 4K%';
+                UPDATE productos SET descuento_pct = 20 WHERE id_producto = 3 OR nombre LIKE '%PTZ 360%';
+                UPDATE productos SET descuento_pct = 10 WHERE id_producto = 5 OR nombre LIKE '%ColorVu%';
+                UPDATE productos SET descuento_pct = 25 WHERE id_producto = 8 OR nombre LIKE '%Perimetral%';
+                UPDATE productos SET descuento_pct = 15 WHERE id_producto = 10 OR nombre LIKE '%Sensor%';
+                UPDATE productos SET descuento_pct = 18 WHERE id_producto = 15 OR nombre LIKE '%Biometrico%';
+                UPDATE productos SET descuento_pct = 10 WHERE id_producto = 17 OR nombre LIKE '%Videoportero%';
+                UPDATE productos SET descuento_pct = 12 WHERE id_producto IN (22, 23) OR nombre LIKE '%Disco Duro%';
+                UPDATE productos SET descuento_pct = 20 WHERE id_producto IN (26, 27) OR nombre LIKE '%Soporte%';
+            ");
+        }
+    } catch (Throwable $e) {
+        // En caso de que la tabla productos aún no exista durante el arranque inicial
+    }
 }
 
 /**
