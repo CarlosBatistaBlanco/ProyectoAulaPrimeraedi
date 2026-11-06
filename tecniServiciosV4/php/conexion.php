@@ -53,11 +53,16 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,                  // usa prepares reales (más seguro)
     ];
 
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $opciones);
+    try {
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, $opciones);
+    } catch (PDOException $ePrimary) {
+        // Respaldo automático: si el usuario 'tecniservicios' no existe (ej. instalación estándar de XAMPP con root vacío)
+        $pdo = new PDO($dsn, 'root', '', $opciones);
+    }
 } catch (PDOException $e) {
     // Si la base de datos no existe o hay error de conexión, se detiene todo
     die('Error de conexión a la base de datos: ' . $e->getMessage() .
-        '<br>Verifica que Apache y MySQL estén encendidos en XAMPP y que importaste sql/TecniSecure.sql');
+        '<br>Verifica que Apache y MySQL estén encendidos en XAMPP y que importaste sql/tecnicsecure.sql');
 }
 
 /**
