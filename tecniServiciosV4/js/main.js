@@ -250,4 +250,75 @@ document.addEventListener('DOMContentLoaded', () => {
     modalZoom.classList.add('activo');
     document.body.style.overflow = 'hidden';
   });
+
+  /* ---------------- 6. MODAL ASESORÍA ("¿NO ENCUENTRAS LO QUE BUSCAS?") ---------------- */
+  window.abrirModalAsesoria = function(textoPrellenado = '') {
+    const modal = document.getElementById('modalAsesoria');
+    if (!modal) return;
+    if (textoPrellenado) {
+      const textarea = modal.querySelector('#asesoriaProducto');
+      if (textarea) textarea.value = textoPrellenado;
+    }
+    modal.classList.add('activo');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.cerrarModalAsesoria = function() {
+    const modal = document.getElementById('modalAsesoria');
+    if (!modal) return;
+    modal.classList.remove('activo');
+    document.body.style.overflow = '';
+  };
+
+  const modalAsesoria = document.getElementById('modalAsesoria');
+  if (modalAsesoria) {
+    modalAsesoria.addEventListener('click', (e) => {
+      if (e.target === modalAsesoria) window.cerrarModalAsesoria();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalAsesoria.classList.contains('activo')) {
+        window.cerrarModalAsesoria();
+      }
+    });
+
+    const formAsesoria = document.getElementById('formAsesoriaProducto');
+    const respAsesoria = document.getElementById('respuestaAsesoria');
+    if (formAsesoria && respAsesoria) {
+      formAsesoria.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const boton = formAsesoria.querySelector('button[type="submit"]');
+        const origText = boton.innerHTML;
+        boton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        boton.disabled = true;
+
+        try {
+          const ruta = window.location.pathname.includes('/pages/')
+            ? '../php/procesar_contacto.php'
+            : 'php/procesar_contacto.php';
+
+          const res = await fetch(ruta, {
+            method: 'POST',
+            body: new FormData(formAsesoria)
+          });
+          const datos = await res.json();
+          respAsesoria.textContent = datos.mensaje || '¡Solicitud recibida! Un asesor técnico se comunicará contigo.';
+          respAsesoria.className = 'form-respuesta ' + (datos.ok ? 'ok' : 'error');
+
+          if (datos.ok) {
+            formAsesoria.reset();
+            setTimeout(() => {
+              window.cerrarModalAsesoria();
+              respAsesoria.textContent = '';
+            }, 3000);
+          }
+        } catch (err) {
+          respAsesoria.textContent = 'Error de conexión. Puedes contactarnos directamente por WhatsApp.';
+          respAsesoria.className = 'form-respuesta error';
+        } finally {
+          boton.innerHTML = origText;
+          boton.disabled = false;
+        }
+      });
+    }
+  }
 });

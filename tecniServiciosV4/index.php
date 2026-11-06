@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * index.php - Página principal de TECNISECURE
  * -----------------------------------------------------------------

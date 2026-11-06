@@ -31,12 +31,26 @@ $ordenes = [
 $orden = isset($_GET['orden']) && isset($ordenes[$_GET['orden']]) ? $_GET['orden'] : 'relevancia';
 $ordenSql = $ordenes[$orden];
 
+$buscar = trim($_GET['buscar'] ?? '');
+
+$where = ['activo = 1'];
+$params = [];
+
 if ($idCategoria > 0) {
-    $stmt = $pdo->prepare("SELECT * FROM productos WHERE activo = 1 AND id_categoria = :cat ORDER BY $ordenSql");
-    $stmt->execute([':cat' => $idCategoria]);
-} else {
-    $stmt = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY $ordenSql");
+    $where[] = 'id_categoria = :cat';
+    $params[':cat'] = $idCategoria;
 }
+
+if ($buscar !== '') {
+    $where[] = '(nombre LIKE :b1 OR descripcion LIKE :b2 OR sku LIKE :b3)';
+    $params[':b1'] = '%' . $buscar . '%';
+    $params[':b2'] = '%' . $buscar . '%';
+    $params[':b3'] = '%' . $buscar . '%';
+}
+
+$whereSql = implode(' AND ', $where);
+$stmt = $pdo->prepare("SELECT * FROM productos WHERE $whereSql ORDER BY $ordenSql");
+$stmt->execute($params);
 $productos = $stmt->fetchAll();
 
 // Marca de cada producto (para mostrarla en la tarjeta)
@@ -59,11 +73,12 @@ try {
     $conteoPorCategoria = [];
 }
 
-// Función auxiliar para no perder la categoría al cambiar el orden
-function urlCatalogo(int $idCategoria, string $orden): string {
+// Función auxiliar para no perder la categoría ni la búsqueda al cambiar el orden
+function urlCatalogo(int $idCategoria, string $orden, string $buscar = ''): string {
     $params = [];
     if ($idCategoria > 0) { $params['categoria'] = $idCategoria; }
     if ($orden !== 'relevancia') { $params['orden'] = $orden; }
+    if ($buscar !== '') { $params['buscar'] = $buscar; }
     return 'productos.php' . ($params ? '?' . http_build_query($params) : '');
 }
 
@@ -117,7 +132,7 @@ require_once __DIR__ . '/../includes/header.php';
         <h3>Categorías</h3>
         <ul>
           <li>
-            <a href="productos.php<?= $orden !== 'relevancia' ? '?orden=' . $orden : ''; ?>"
+            <a href="productos.php<?= $orden !== 'relevancia' ? '?orden=' . $orden : ''; ?><?= $buscar !== '' ? ($orden !== 'relevancia' ? '&' : '?') . 'buscar=' . urlencode($buscar) : ''; ?>"
                class="<?= $idCategoria === 0 ? 'activo' : ''; ?>">
               Todas
               <span class="catalogo__conteo"><?= array_sum($conteoPorCategoria); ?></span>
@@ -125,7 +140,7 @@ require_once __DIR__ . '/../includes/header.php';
           </li>
           <?php foreach ($categorias as $c): ?>
             <li>
-              <a href="productos.php?categoria=<?= $c['id_categoria']; ?><?= $orden !== 'relevancia' ? '&orden=' . $orden : ''; ?>"
+              <a href="productos.php?categoria=<?= $c['id_categoria']; ?><?= $orden !== 'relevancia' ? '&orden=' . $orden : ''; ?><?= $buscar !== '' ? '&buscar=' . urlencode($buscar) : ''; ?>"
                  class="<?= $idCategoria === (int)$c['id_categoria'] ? 'activo' : ''; ?>">
                 <?= htmlspecialchars($c['nombre']); ?>
                 <span class="catalogo__conteo"><?= $conteoPorCategoria[$c['id_categoria']] ?? 0; ?></span>
@@ -134,48 +149,70 @@ require_once __DIR__ . '/../includes/header.php';
           <?php endforeach; ?>
         </ul>
 
-        <a href="index.php#contacto" class="catalogo__ayuda">
+        <button type="button" class="catalogo__ayuda" onclick="abrirModalAsesoria()" title="Solicitar asesoría para encontrar un equipo">
           <i class="fa-solid fa-headset"></i>
-          ¿No encuentras lo que buscas? Te asesoramos
-        </a>
+          <span>¿No encuentras lo que buscas? <strong>Te asesoramos</strong></span>
+        </button>
       </aside>
 
       <!-- ============ GRID DE PRODUCTOS ============ -->
       <div class="catalogo__productos">
         <div class="catalogo__barra">
-          <p class="catalogo__resultado">
-            <strong><?= count($productos); ?></strong>
-            <?= count($productos) === 1 ? 'producto' : 'productos'; ?>
-            <?php if ($idCategoria > 0): $catActual = array_values(array_filter($categorias, fn($c) => (int)$c['id_categoria'] === $idCategoria))[0] ?? null; ?>
-              en <strong><?= htmlspecialchars($catActual['nombre'] ?? ''); ?></strong>
+          <!-- Buscador en tiempo real / por término -->
+          <form method="GET" action="productos.php" class="catalogo__buscador">
+            <?php if ($idCategoria > 0): ?><input type="hidden" name="categoria" value="<?= $idCategoria; ?>"><?php endif; ?>
+            <?php if ($orden !== 'relevancia'): ?><input type="hidden" name="orden" value="<?= htmlspecialchars($orden); ?>"><?php endif; ?>
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="buscar" value="<?= htmlspecialchars($buscar); ?>" placeholder="Buscar cámaras, alarmas, sensores, accesorios...">
+            <?php if ($buscar !== ''): ?>
+              <a href="productos.php<?= $idCategoria > 0 ? '?categoria=' . $idCategoria : ''; ?>" class="catalogo__limpiar-busqueda" title="Quitar búsqueda">&times;</a>
             <?php endif; ?>
-          </p>
+            <button type="submit">Buscar</button>
+          </form>
 
-          <label class="catalogo__orden">
-            <span>Ordenar por</span>
-            <select onchange="location.href=this.value">
-              <?php foreach ([
-                  'relevancia'  => 'Destacados primero',
-                  'precio_asc'  => 'Precio: menor a mayor',
-                  'precio_desc' => 'Precio: mayor a menor',
-                  'nombre'      => 'Nombre (A-Z)',
-                  'nuevos'      => 'Más recientes',
-              ] as $clave => $etiqueta): ?>
-                <option value="<?= urlCatalogo($idCategoria, $clave); ?>" <?= $orden === $clave ? 'selected' : ''; ?>>
-                  <?= $etiqueta; ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </label>
+          <div class="catalogo__barra-derecha">
+            <p class="catalogo__resultado">
+              <strong><?= count($productos); ?></strong>
+              <?= count($productos) === 1 ? 'producto' : 'productos'; ?>
+              <?php if ($buscar !== ''): ?>
+                para "<strong><?= htmlspecialchars($buscar); ?></strong>"
+              <?php endif; ?>
+              <?php if ($idCategoria > 0): $catActual = array_values(array_filter($categorias, fn($c) => (int)$c['id_categoria'] === $idCategoria))[0] ?? null; ?>
+                en <strong><?= htmlspecialchars($catActual['nombre'] ?? ''); ?></strong>
+              <?php endif; ?>
+            </p>
+
+            <label class="catalogo__orden">
+              <span>Ordenar por</span>
+              <select onchange="location.href=this.value">
+                <?php foreach ([
+                    'relevancia'  => 'Destacados primero',
+                    'precio_asc'  => 'Precio: menor a mayor',
+                    'precio_desc' => 'Precio: mayor a menor',
+                    'nombre'      => 'Nombre (A-Z)',
+                    'nuevos'      => 'Más recientes',
+                ] as $clave => $etiqueta): ?>
+                  <option value="<?= urlCatalogo($idCategoria, $clave, $buscar); ?>" <?= $orden === $clave ? 'selected' : ''; ?>>
+                    <?= $etiqueta; ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
         </div>
 
         <div class="productos__grid">
           <?php if (empty($productos)): ?>
             <div class="catalogo__vacio">
               <i class="fa-solid fa-box-open"></i>
-              <h3>No hay productos en esta categoría</h3>
-              <p>Estamos ampliando nuestro catálogo. Cuéntanos qué necesitas y te ayudamos a conseguirlo.</p>
-              <a href="productos.php" class="btn btn--secundario">Ver todos los productos</a>
+              <h3><?= $buscar !== '' ? 'No encontramos productos que coincidan con "' . htmlspecialchars($buscar) . '"' : 'No hay productos en esta categoría'; ?></h3>
+              <p>¿Buscas una referencia especial, otra marca o repuesto técnico? Nuestro equipo te lo cotiza e instala.</p>
+              <div class="catalogo__vacio-acciones">
+                <button type="button" class="btn btn--primario" onclick="abrirModalAsesoria('<?= !empty($buscar) ? 'Hola, estaba buscando en el catálogo: ' . addslashes(htmlspecialchars($buscar)) : ''; ?>')">
+                  <i class="fa-solid fa-headset"></i> Solicitar este producto a un asesor
+                </button>
+                <a href="productos.php" class="btn btn--secundario">Ver todo el catálogo</a>
+              </div>
             </div>
           <?php endif; ?>
 
@@ -274,6 +311,23 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Los productos se insertan aquí dinámicamente con JS -->
   </div>
 
+  <!-- SECCIÓN: LISTA DE PRODUCTOS DESEADA -->
+  <div class="carrito-deseos-seccion" id="carritoDeseosSeccion">
+    <button type="button" class="btn-toggle-deseos-carrito" id="btnToggleDeseosCarrito" onclick="toggleDeseosCarrito()" aria-expanded="false">
+      <span class="btn-toggle-deseos-carrito__texto">
+        <i class="fa-solid fa-heart"></i>
+        <span id="textoToggleDeseos">Mostrar lista de productos deseada</span>
+        <span class="deseos-chip-contador" id="carritoDeseosCount">0</span>
+      </span>
+      <i class="fa-solid fa-chevron-down flecha-deseos" id="flechaDeseosCarrito"></i>
+    </button>
+    <div class="carrito-deseos-contenedor" id="carritoDeseosContenedor" style="display: none;">
+      <div class="carrito-deseos-lista" id="carritoDeseosLista">
+        <!-- Renderizado dinámico desde JS con los productos deseados -->
+      </div>
+    </div>
+  </div>
+
   <div class="carrito-panel__resumen">
     <div class="carrito-total">
       <span>Total:</span>
@@ -294,5 +348,64 @@ require_once __DIR__ . '/../includes/header.php';
     <p class="form-respuesta" id="respuestaPedido"></p>
   </div>
 </aside>
+
+<!-- ============ MODAL ASESORÍA / NO ENCUENTRAS LO QUE BUSCAS ============ -->
+<div class="modal-asesoria" id="modalAsesoria" role="dialog" aria-modal="true" aria-labelledby="tituloModalAsesoria">
+  <div class="modal-asesoria__caja">
+    <button type="button" class="modal-asesoria__cerrar" id="cerrarModalAsesoria" onclick="cerrarModalAsesoria()" aria-label="Cerrar ventana">&times;</button>
+    
+    <div class="modal-asesoria__header">
+      <div class="modal-asesoria__icono">
+        <i class="fa-solid fa-headset"></i>
+      </div>
+      <div>
+        <h3 id="tituloModalAsesoria">¿No encuentras lo que buscas?</h3>
+        <p>Nuestro equipo técnico te ayuda a conseguir cualquier equipo o repuesto con cotización inmediata y garantía oficial.</p>
+      </div>
+    </div>
+
+    <form id="formAsesoriaProducto" class="modal-asesoria__form">
+      <input type="hidden" name="tipo" value="mensaje">
+      <input type="hidden" name="asunto" value="Consulta de producto especial (No encontrado en catálogo)">
+
+      <div class="campo">
+        <label for="asesoriaNombre">Nombre completo *</label>
+        <input type="text" id="asesoriaNombre" name="nombre" placeholder="Tu nombre" required 
+               value="<?= htmlspecialchars($datosCliente['nombre'] ?? ''); ?>">
+      </div>
+
+      <div class="modal-asesoria__fila">
+        <div class="campo">
+          <label for="asesoriaTelefono">Teléfono o WhatsApp *</label>
+          <input type="tel" id="asesoriaTelefono" name="telefono" placeholder="Ej. 300 123 4567" required
+                 value="<?= htmlspecialchars($datosCliente['telefono'] ?? ''); ?>">
+        </div>
+        <div class="campo">
+          <label for="asesoriaCorreo">Correo electrónico *</label>
+          <input type="email" id="asesoriaCorreo" name="correo" placeholder="correo@ejemplo.com" required
+                 value="<?= htmlspecialchars($datosCliente['correo'] ?? ''); ?>">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="asesoriaProducto">¿Qué producto, referencia o repuesto necesitas? *</label>
+        <textarea id="asesoriaProducto" name="mensaje" rows="3" required
+                  placeholder="Cuéntanos el modelo, marca, características técnicas o el tipo de solución que necesitas (ej. Cámara domo térmica para bodega exterior, sensor de barrera fotoeléctrica, NVR 32 canales)..."><?= !empty($buscar) ? 'Hola, estaba buscando en el catálogo el equipo "' . htmlspecialchars($buscar) . '" y no lo encontré. ¿Me pueden ayudar a cotizarlo?' : ''; ?></textarea>
+      </div>
+
+      <div class="modal-asesoria__acciones">
+        <button type="submit" class="btn btn--primario">
+          <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+        </button>
+        <a href="https://wa.me/573001234567?text=<?= urlencode('Hola TECNISECURE, estoy buscando un producto que no veo en el catálogo y necesito asesoría técnica.'); ?>"
+           target="_blank" class="btn-whatsapp-asesoria" title="Chatear directamente por WhatsApp">
+          <i class="fa-brands fa-whatsapp"></i> Hablar por WhatsApp
+        </a>
+      </div>
+
+      <p class="form-respuesta" id="respuestaAsesoria"></p>
+    </form>
+  </div>
+</div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

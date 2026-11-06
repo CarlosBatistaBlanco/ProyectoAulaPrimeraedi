@@ -91,6 +91,23 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Los productos se insertan aquí dinámicamente con JS -->
   </div>
 
+  <!-- SECCIÓN: LISTA DE PRODUCTOS DESEADA -->
+  <div class="carrito-deseos-seccion" id="carritoDeseosSeccion">
+    <button type="button" class="btn-toggle-deseos-carrito" id="btnToggleDeseosCarrito" onclick="toggleDeseosCarrito()" aria-expanded="false">
+      <span class="btn-toggle-deseos-carrito__texto">
+        <i class="fa-solid fa-heart"></i>
+        <span id="textoToggleDeseos">Mostrar lista de productos deseada</span>
+        <span class="deseos-chip-contador" id="carritoDeseosCount">0</span>
+      </span>
+      <i class="fa-solid fa-chevron-down flecha-deseos" id="flechaDeseosCarrito"></i>
+    </button>
+    <div class="carrito-deseos-contenedor" id="carritoDeseosContenedor" style="display: none;">
+      <div class="carrito-deseos-lista" id="carritoDeseosLista">
+        <!-- Renderizado dinámico desde JS con los productos deseados -->
+      </div>
+    </div>
+  </div>
+
   <div class="carrito-panel__resumen">
     <div class="carrito-total">
       <span>Total:</span>

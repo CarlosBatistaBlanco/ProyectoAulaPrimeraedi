@@ -224,6 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function abrirCarrito() {
   document.getElementById('carritoPanel')?.classList.add('activo');
   document.getElementById('carritoOverlay')?.classList.add('activo');
+  if (typeof actualizarDeseosEnCarrito === 'function') {
+    actualizarDeseosEnCarrito();
+  }
 }
 function cerrarCarrito() {
   document.getElementById('carritoPanel')?.classList.remove('activo');

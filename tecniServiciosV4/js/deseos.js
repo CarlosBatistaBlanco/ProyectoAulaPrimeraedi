@@ -42,6 +42,7 @@ function actualizarContadorDeseos() {
       el.classList.remove('activo');
     }
   });
+  actualizarDeseosEnCarrito();
 }
 
 function mostrarToast(mensaje, icono = 'fa-solid fa-heart') {
@@ -304,4 +305,142 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('listaDeseosGrid')) {
     renderizarListaDeseos();
   }
+
+  // Inicializar contador y estado en el panel lateral del carrito
+  actualizarDeseosEnCarrito();
 });
+
+/* ---------------------------------------------------------------------
+   INTEGRACIÓN: LISTA DE DESEOS DENTRO DEL PANEL DEL CARRITO
+--------------------------------------------------------------------- */
+
+/**
+ * Alterna (despliega / oculta) la lista de productos deseada dentro del carrito
+ */
+function toggleDeseosCarrito() {
+  const panel = document.getElementById('carritoDeseosContenedor');
+  const flecha = document.getElementById('flechaDeseosCarrito');
+  const btn = document.getElementById('btnToggleDeseosCarrito');
+  const texto = document.getElementById('textoToggleDeseos');
+  if (!panel) return;
+
+  const estaVisible = panel.style.display !== 'none' && panel.style.display !== '';
+
+  if (estaVisible) {
+    panel.style.display = 'none';
+    btn?.classList.remove('abierto');
+    btn?.setAttribute('aria-expanded', 'false');
+    if (flecha) flecha.style.transform = 'rotate(0deg)';
+    if (texto) texto.textContent = 'Mostrar lista de productos deseada';
+  } else {
+    renderizarDeseosEnCarrito();
+    panel.style.display = 'block';
+    btn?.classList.add('abierto');
+    btn?.setAttribute('aria-expanded', 'true');
+    if (flecha) flecha.style.transform = 'rotate(180deg)';
+    if (texto) texto.textContent = 'Ocultar lista de productos deseada';
+  }
+}
+
+/**
+ * Actualiza el contador y, si el panel está desplegado, refresca los items
+ */
+function actualizarDeseosEnCarrito() {
+  const lista = leerDeseos();
+  const countEl = document.getElementById('carritoDeseosCount');
+  if (countEl) countEl.textContent = lista.length;
+
+  const panel = document.getElementById('carritoDeseosContenedor');
+  if (panel && panel.style.display !== 'none' && panel.style.display !== '') {
+    renderizarDeseosEnCarrito();
+  }
+}
+
+/**
+ * Dibuja los productos de la lista de deseos dentro del acordeón del carrito
+ */
+function renderizarDeseosEnCarrito() {
+  const contenedor = document.getElementById('carritoDeseosLista');
+  const countEl = document.getElementById('carritoDeseosCount');
+  if (!contenedor) return;
+
+  const lista = leerDeseos();
+  if (countEl) countEl.textContent = lista.length;
+
+  if (lista.length === 0) {
+    contenedor.innerHTML = `
+      <div class="carrito-deseos-vacio">
+        <i class="fa-regular fa-heart"></i>
+        <p>No tienes productos en tu lista de deseos todavía.</p>
+      </div>
+    `;
+    return;
+  }
+
+  contenedor.innerHTML = lista.map(p => {
+    let imgPath = p.imagen || 'img/productos/sin-imagen.jpg';
+    if (window.location.pathname.includes('/pages/') && !imgPath.startsWith('../') && !imgPath.startsWith('http')) {
+      imgPath = '../' + imgPath;
+    }
+    const fallbackImg = window.location.pathname.includes('/pages/') ? '../img/productos/sin-imagen.jpg' : 'img/productos/sin-imagen.jpg';
+    const precioFmt = '$' + Number(p.precio).toLocaleString('es-CO');
+    const tieneDesc = p.descuento_pct > 0 && p.precio_original > p.precio;
+    const precioOrigFmt = tieneDesc ? '$' + Number(p.precio_original).toLocaleString('es-CO') : '';
+
+    return `
+      <div class="item-deseo-carrito" data-id="${p.id_producto}">
+        <img src="${imgPath}" alt="${p.nombre}" onerror="this.src='${fallbackImg}'">
+        <div class="item-deseo-carrito__info">
+          ${p.marca ? `<span class="item-deseo-carrito__marca">${p.marca}</span>` : ''}
+          <h5 title="${p.nombre}">${p.nombre}</h5>
+          <div class="item-deseo-carrito__precio">
+            ${tieneDesc ? `<span class="precio-original-mini">${precioOrigFmt}</span>` : ''}
+            <span class="precio-actual-mini">${precioFmt}</span>
+          </div>
+          <button type="button" class="btn-agregar-desde-deseos" onclick="agregarDesdeDeseosEnCarrito(${p.id_producto}, this)" title="Agregar este producto al carrito">
+            <i class="fa-solid fa-cart-plus"></i> Agregar al carrito
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Agrega un producto desde la lista de deseos directamente al carrito
+ */
+function agregarDesdeDeseosEnCarrito(idProducto, btnElement) {
+  const lista = leerDeseos();
+  const prod = lista.find(p => Number(p.id_producto) === Number(idProducto));
+  if (!prod) return;
+
+  let imgPath = prod.imagen || 'img/productos/sin-imagen.jpg';
+  if (window.location.pathname.includes('/pages/') && !imgPath.startsWith('../') && !imgPath.startsWith('http')) {
+    imgPath = '../' + imgPath;
+  }
+
+  if (typeof agregarAlCarrito === 'function') {
+    agregarAlCarrito({
+      id_producto: Number(prod.id_producto),
+      nombre: prod.nombre,
+      precio: parseFloat(prod.precio),
+      imagen: imgPath
+    });
+  }
+
+  if (btnElement) {
+    const textoOriginal = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> ¡Agregado!';
+    btnElement.classList.add('agregado');
+    btnElement.disabled = true;
+    setTimeout(() => {
+      btnElement.innerHTML = textoOriginal;
+      btnElement.classList.remove('agregado');
+      btnElement.disabled = false;
+    }, 1400);
+  }
+
+  if (typeof mostrarToast === 'function') {
+    mostrarToast(`"${prod.nombre}" agregado al carrito`, 'fa-solid fa-cart-plus');
+  }
+}
