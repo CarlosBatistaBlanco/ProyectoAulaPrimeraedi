@@ -1,0 +1,284 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 10
+skinparam roundCorner 4
+
+' Estilos monocromáticos limpios para clases
+skinparam class {
+    BorderColor black
+    BackgroundColor white
+    ArrowColor black
+}
+
+title DIAGRAMA DE CLASES UML - ARQUITECTURA Y DOMINIO (TECNISERVICIOS)
+
+' ==========================================
+' CAPA DE CONTROLADORES (PRESENTACIÓN API)
+' ==========================================
+package "com.tecnicsecure.controller" {
+    class AuthController {
+        - authService: AuthService
+        --
+        + login(request: LoginRequest): ResponseEntity<TokenResponse>
+        + registro(request: RegistroRequest): ResponseEntity<UsuarioResponse>
+        + refreshToken(request: RefreshRequest): ResponseEntity<TokenResponse>
+        + obtenerPerfilActual(): ResponseEntity<UsuarioResponse>
+    }
+
+    class CatalogoController {
+        - catalogoService: CatalogoService
+        --
+        + listarProductos(page: int, size: int, catId: Long): PageResponse<ProductoResumen>
+        + obtenerPorId(id: Long): ResponseEntity<ProductoDetalle>
+        + crearProducto(request: ProductoRequest): ResponseEntity<ProductoDetalle>
+    }
+
+    class PedidoController {
+        - pedidoService: PedidoService
+        --
+        + crearPedido(request: PedidoRequest): ResponseEntity<PedidoResponse>
+        + listarMisPedidos(): ResponseEntity<List<PedidoResumen>>
+        + actualizarEstado(id: Long, request: EstadoPedidoRequest): ResponseEntity<Void>
+    }
+
+    class InventarioController {
+        - inventarioService: InventarioService
+        --
+        + registrarMovimiento(request: MovimientoRequest): ResponseEntity<MovimientoResponse>
+        + listarAlertasStock(): ResponseEntity<List<ProductoAlerta>>
+        + consultarKardex(productoId: Long): ResponseEntity<List<MovimientoResponse>>
+    }
+
+    class SoporteController {
+        - soporteService: SoporteService
+        --
+        + enviarMensaje(request: MensajeChatRequest): ResponseEntity<MensajeChatResponse>
+        + obtenerHistorialChat(clienteId: Long): ResponseEntity<List<MensajeChatResponse>>
+        + crearSolicitudServicio(request: SolicitudRequest): ResponseEntity<SolicitudResponse>
+    }
+}
+
+' ==========================================
+' CAPA DE SERVICIOS (LÓGICA DEL DOMINIO)
+' ==========================================
+package "com.tecnicsecure.service" {
+    interface AuthService {
+        + autenticar(request: LoginRequest): TokenResponse
+        + registrar(request: RegistroRequest): UsuarioResponse
+        + refrescarToken(request: RefreshRequest): TokenResponse
+    }
+
+    class AuthServiceImpl {
+        - usuarioRepository: UsuarioRepository
+        - passwordEncoder: PasswordEncoder
+        - jwtService: JwtService
+        --
+        + autenticar(request: LoginRequest): TokenResponse
+        + registrar(request: RegistroRequest): UsuarioResponse
+        + refrescarToken(request: RefreshRequest): TokenResponse
+    }
+
+    class JwtService {
+        - secretKey: String
+        - expirationMs: long
+        --
+        + generarAccessToken(usuario: Usuario): String
+        + generarRefreshToken(usuario: Usuario): String
+        + validarToken(token: String): boolean
+        + extraerCorreo(token: String): String
+        + extraerRol(token: String): String
+    }
+
+    interface CatalogoService {
+        + listarProductos(pageable: Pageable, filtro: FiltroCatalogo): Page<Producto>
+        + obtenerPorId(id: Long): Producto
+        + guardarProducto(request: ProductoRequest): Producto
+    }
+
+    class CatalogoServiceImpl {
+        - productoRepository: ProductoRepository
+        - categoriaRepository: CategoriaRepository
+        - marcaRepository: MarcaRepository
+        --
+        + listarProductos(pageable: Pageable, filtro: FiltroCatalogo): Page<Producto>
+        + obtenerPorId(id: Long): Producto
+        + guardarProducto(request: ProductoRequest): Producto
+    }
+
+    interface PedidoService {
+        + crearPedido(request: PedidoRequest, usuario: Usuario): PedidoResponse
+        + obtenerPorId(id: Long): PedidoResponse
+        + cambiarEstado(id: Long, nuevoEstado: EstadoPedido): void
+    }
+
+    class PedidoServiceImpl {
+        - pedidoRepository: PedidoRepository
+        - productoRepository: ProductoRepository
+        - inventarioService: InventarioService
+        --
+        + crearPedido(request: PedidoRequest, usuario: Usuario): PedidoResponse
+        + obtenerPorId(id: Long): PedidoResponse
+        + cambiarEstado(id: Long, nuevoEstado: EstadoPedido): void
+    }
+
+    interface InventarioService {
+        + descontarStock(productoId: Long, cantidad: int, motivo: String): void
+        + incrementarStock(productoId: Long, cantidad: int, motivo: String): void
+        + registrarMovimiento(request: MovimientoRequest): MovimientoResponse
+    }
+
+    class InventarioServiceImpl {
+        - productoRepository: ProductoRepository
+        - inventarioRepository: InventarioMovimientoRepository
+        --
+        + descontarStock(productoId: Long, cantidad: int, motivo: String): void
+        + incrementarStock(productoId: Long, cantidad: int, motivo: String): void
+        + registrarMovimiento(request: MovimientoRequest): MovimientoResponse
+    }
+}
+
+' Implementaciones de Servicios
+AuthServiceImpl ..|> AuthService
+CatalogoServiceImpl ..|> CatalogoService
+PedidoServiceImpl ..|> PedidoService
+InventarioServiceImpl ..|> InventarioService
+
+' Dependencias entre Capas (Controladores -> Servicios)
+AuthController --> AuthService
+CatalogoController --> CatalogoService
+PedidoController --> PedidoService
+InventarioController --> InventarioService
+SoporteController --> SoporteService
+
+' Dependencias de Servicios Internos
+AuthServiceImpl --> JwtService
+PedidoServiceImpl --> InventarioService
+
+' ==========================================
+' MODELO DE ENTIDADES DEL DOMINIO
+' ==========================================
+package "com.tecnicsecure.entity" {
+    class Usuario {
+        - id: Long
+        - correo: String
+        - password: String
+        - nombre: String
+        - apellido: String
+        - activo: Boolean
+        - rol: Rol
+        --
+        + esActivo(): boolean
+    }
+
+    class Rol {
+        - id: Integer
+        - nombre: String
+    }
+
+    class Cliente {
+        - documentoNumero: String
+        - direccion: String
+        - ciudad: String
+    }
+
+    class Empleado {
+        - cargo: String
+        - especialidad: String
+    }
+
+    Usuario <|-- Cliente : hereda / extiende
+    Usuario <|-- Empleado : hereda / extiende
+    Usuario "N" --> "1" Rol : pertenece a
+
+    class Producto {
+        - id: Long
+        - sku: String
+        - nombre: String
+        - descripcion: String
+        - precio: BigDecimal
+        - descuentoPorcentaje: Integer
+        - stock: Integer
+        - stockMinimo: Integer
+        - categoria: Categoria
+        - marca: Marca
+        --
+        + getPrecioConDescuento(): BigDecimal
+        + tieneStock(cantidad: int): boolean
+    }
+
+    class Categoria {
+        - id: Long
+        - nombre: String
+        - icono: String
+    }
+
+    class Marca {
+        - id: Long
+        - nombre: String
+        - logoUrl: String
+    }
+
+    Producto "N" --> "1" Categoria : clasificado en
+    Producto "N" --> "1" Marca : fabricado por
+
+    class Pedido {
+        - id: Long
+        - numeroPedido: String
+        - subtotal: BigDecimal
+        - descuentoTotal: BigDecimal
+        - total: BigDecimal
+        - estado: EstadoPedido
+        - cliente: Cliente
+        --
+        + agregarDetalle(detalle: PedidoDetalle): void
+        + calcularTotales(): void
+    }
+
+    class PedidoDetalle {
+        - id: Long
+        - cantidad: Integer
+        - precioUnitario: BigDecimal
+        - descuentoUnitario: BigDecimal
+        - subtotal: BigDecimal
+        - producto: Producto
+        --
+        + calcularSubtotal(): BigDecimal
+    }
+
+    enum EstadoPedido {
+        PENDIENTE
+        PAGADO
+        EN_CAMINO
+        ENTREGADO
+        CANCELADO
+    }
+
+    Pedido "1" *-- "N" PedidoDetalle : contiene
+    PedidoDetalle "N" --> "1" Producto : referencia
+    Pedido "N" --> "1" Cliente : realizado por
+    Pedido "N" --> "1" EstadoPedido : tiene
+
+    class InventarioMovimiento {
+        - id: Long
+        - tipo: String
+        - cantidad: Integer
+        - stockAnterior: Integer
+        - stockNuevo: Integer
+        - motivo: String
+        - producto: Producto
+        - usuario: Usuario
+    }
+
+    InventarioMovimiento "N" --> "1" Producto : afecta a
+    InventarioMovimiento "N" --> "1" Usuario : registrado por
+}
+
+' Relación de Servicios con Entidades
+PedidoServiceImpl --> Pedido
+InventarioServiceImpl --> InventarioMovimiento
+CatalogoServiceImpl --> Producto
+AuthServiceImpl --> Usuario
+
+@enduml

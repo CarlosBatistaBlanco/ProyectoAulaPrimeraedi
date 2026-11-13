@@ -1,0 +1,173 @@
+' =====================================================================
+' DIAGRAMAS DE SECUENCIA UML - TECNISERVICIOS (TECNISECURE)
+' Formato: PlantUML estándar monocromático (Blanco y Negro)
+' Archivo unificado con los flujos de secuencia separados por bloque
+' =====================================================================
+
+
+' =====================================================================
+' DIAGRAMA 1: FLUJO DE AUTENTICACIÓN Y EMISIÓN DE TOKENS JWT
+' =====================================================================
+@startuml secuencia_autenticacion
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 1: AUTENTICACIÓN Y EMISIÓN DE TOKENS JWT
+
+actor "Usuario / Cliente" as Usuario
+boundary "Interfaz Web\n(login.html / auth.js)" as UI
+control "AuthController" as AuthCtrl
+participant "AuthServiceImpl" as AuthSvc
+database "UsuarioRepository" as UserRepo
+participant "PasswordEncoder\n(BCrypt)" as BCrypt
+participant "JwtService" as JwtSvc
+
+Usuario -> UI: 1. Ingresa correo y contraseña y presiona "Iniciar Sesión"
+activate UI
+
+UI -> AuthCtrl: 2. POST /api/auth/login\nPayload: {correo, password}
+activate AuthCtrl
+
+AuthCtrl -> AuthSvc: 3. autenticar(LoginRequest)
+activate AuthSvc
+
+AuthSvc -> UserRepo: 4. findByCorreo(correo)
+activate UserRepo
+UserRepo --> AuthSvc: 5. Optional<Usuario>
+deactivate UserRepo
+
+alt Usuario no existe o está inactivo
+    AuthSvc --> AuthCtrl: throw ApiException(401, "Credenciales incorrectas")
+    AuthCtrl --> UI: HTTP 401 Unauthorized\n{error: "Credenciales incorrectas"}
+    UI --> Usuario: Muestra alerta visual: "Correo o contraseña incorrectos"
+else Usuario registrado y activo
+    AuthSvc -> BCrypt: 6. matches(passwordPlano, usuario.getPasswordHash())
+    activate BCrypt
+    BCrypt --> AuthSvc: 7. Resultado validación (boolean)
+    deactivate BCrypt
+    
+    alt Contraseña no coincide
+        AuthSvc --> AuthCtrl: throw ApiException(401, "Credenciales incorrectas")
+        AuthCtrl --> UI: HTTP 401 Unauthorized\n{error: "Credenciales incorrectas"}
+        UI --> Usuario: Muestra alerta visual: "Correo o contraseña incorrectos"
+    else Contraseña válida
+        AuthSvc -> JwtSvc: 8. generarAccessToken(usuario)
+        activate JwtSvc
+        JwtSvc --> AuthSvc: 9. accessToken (JWT - 15 min)
+        deactivate JwtSvc
+        
+        AuthSvc -> JwtSvc: 10. generarRefreshToken(usuario)
+        activate JwtSvc
+        JwtSvc --> AuthSvc: 11. refreshToken (JWT - 7 días)
+        deactivate JwtSvc
+        
+        AuthSvc --> AuthCtrl: 12. TokenResponse(tokens, datosUsuario)
+        deactivate AuthSvc
+        
+        AuthCtrl --> UI: 13. HTTP 200 OK\nJSON: {accessToken, refreshToken, usuario}
+        deactivate AuthCtrl
+        
+        UI -> UI: 14. Almacena tokens en LocalStorage
+        UI --> Usuario: 15. Redirige al panel correspondiente (Cliente / Admin)
+        deactivate UI
+    end
+end
+
+@enduml
+
+
+' =====================================================================
+' DIAGRAMA 2: FLUJO DE CREACIÓN DE PEDIDO CON CONTROL DE STOCK REACTIVO
+' =====================================================================
+@startuml secuencia_creacion_pedido
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 2: CONFIRMACIÓN DE PEDIDO CON CONTROL DE STOCK REACTIVO
+
+actor "Cliente Autenticado" as Cliente
+boundary "Carrito Web\n(carrito.js)" as UI
+control "JwtAuthenticationFilter" as SecurityFilter
+control "PedidoController" as PedCtrl
+participant "PedidoServiceImpl" as PedSvc
+database "ProductoRepository" as ProdRepo
+participant "InventarioServiceImpl" as InvSvc
+database "InventarioRepository" as InvRepo
+database "PedidoRepository" as PedRepo
+
+Cliente -> UI: 1. Presiona "Confirmar Pedido" desde el carrito
+activate UI
+
+UI -> SecurityFilter: 2. POST /api/pedidos\nHeader: Authorization: Bearer <accessToken>\nPayload: {direccionEnvio, telefono, items:[{productoId, cantidad}]}
+activate SecurityFilter
+
+SecurityFilter -> SecurityFilter: 3. Valida firma y expiración del JWT
+SecurityFilter -> PedCtrl: 4. Reenvía solicitud autorizada con contexto de Usuario
+deactivate SecurityFilter
+activate PedCtrl
+
+PedCtrl -> PedSvc: 5. crearPedido(PedidoRequest, usuarioActual)
+activate PedSvc
+
+note over PedSvc: Inicio de Transacción (@Transactional)
+
+loop Por cada producto en la lista de items
+    PedSvc -> ProdRepo: 6. findById(productoId)
+    activate ProdRepo
+    ProdRepo --> PedSvc: 7. Entidad Producto (precio, stock actual, descuento)
+    deactivate ProdRepo
+    
+    PedSvc -> PedSvc: 8. Verifica disponibilidad física: (stock >= cantidad)
+    
+    alt Stock insuficiente para el producto
+        PedSvc --> PedCtrl: throw ApiException(400, "Stock insuficiente para: " + nombre)
+        PedCtrl --> UI: HTTP 400 Bad Request\n{error: "Stock insuficiente"}
+        UI --> Cliente: Notifica: "No hay existencias suficientes para completar la compra"
+    end
+end
+
+PedSvc -> PedSvc: 9. Aplica descuentos y calcula subtotal e IVA con BigDecimal
+PedSvc -> PedRepo: 10. save(nuevoPedido en estado 'PENDIENTE')
+activate PedRepo
+PedRepo --> PedSvc: 11. Pedido persistido con ID y numeroPedido generado
+deactivate PedRepo
+
+loop Por cada producto comprado
+    PedSvc -> InvSvc: 12. descontarStock(productoId, cantidad, "Venta Pedido #" + numeroPedido)
+    activate InvSvc
+    
+    InvSvc -> ProdRepo: 13. save(producto con stock decrementado)
+    activate ProdRepo
+    ProdRepo --> InvSvc: 14. Producto actualizado
+    deactivate ProdRepo
+    
+    InvSvc -> InvRepo: 15. save(Movimiento tipo 'SALIDA' en Kardex)
+    activate InvRepo
+    InvRepo --> InvSvc: 16. Movimiento registrado
+    deactivate InvRepo
+    
+    InvSvc --> PedSvc: 17. Stock descontado exitosamente
+    deactivate InvSvc
+end
+
+note over PedSvc: Fin de Transacción (Commit Exitoso)
+
+PedSvc --> PedCtrl: 18. Retorna PedidoResponse(id, numeroPedido, total, estado)
+deactivate PedSvc
+
+PedCtrl --> UI: 19. HTTP 201 Created\nJSON: {numeroPedido, total, estado: "PENDIENTE"}
+deactivate PedCtrl
+
+UI -> UI: 20. Limpia el carrito en LocalStorage
+UI --> Cliente: 21. Despliega confirmación de compra y número de orden
+deactivate UI
+
+@enduml

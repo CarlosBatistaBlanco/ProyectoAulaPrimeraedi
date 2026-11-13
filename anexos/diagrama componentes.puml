@@ -1,0 +1,127 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+
+' Estilos monocromáticos limpios
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam interface {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+}
+
+title DIAGRAMA DE COMPONENTES UML - TECNISERVICIOS (TECNISECURE)
+
+package "Capa de Presentación (Frontend Web)" as Frontend {
+    [Interfaz de Usuario Web\n(HTML5 / CSS3 / Vanilla JS)] as UI
+    [Módulo Cliente API REST\n(Fetch API / Async-Await)] as ClienteAPI
+    [Módulo Cliente WebSocket\n(STOMP.js)] as ClienteWS
+    
+    UI ..> ClienteAPI : <<use>>
+    UI ..> ClienteWS : <<use>>
+}
+
+' Interfaces expuestas por el Backend
+interface "HTTP / REST API\n(JSON UTF-8 / Puerto 8080)" as HTTP_REST
+interface "WebSocket / STOMP\n(TCP / Puerto 8080)" as WS_STOMP
+
+ClienteAPI -down-( HTTP_REST
+ClienteWS -down-( WS_STOMP
+
+package "Capa de Negocio y Servicios (Backend Spring Boot 3.3)" as Backend {
+
+    package "Módulo de Seguridad" as Seguridad {
+        [Filtro de Autenticación JWT\n(JwtAuthenticationFilter)] as JwtFilter
+        [Servicio Criptográfico JWT\n(JwtService)] as JwtSvc
+        
+        JwtFilter ..> JwtSvc : <<use>>
+    }
+
+    HTTP_REST -down-> JwtFilter
+    WS_STOMP -down-> JwtFilter
+
+    package "Controladores REST (Capa de Presentación API)" as Controladores {
+        [AuthController] as AuthCtrl
+        [CatalogoController] as CatCtrl
+        [PedidoController] as PedCtrl
+        [InventarioController] as InvCtrl
+        [SoporteController] as SopCtrl
+        [ReporteController] as RepCtrl
+        [ClienteController] as CliCtrl
+    }
+
+    JwtFilter ..> AuthCtrl : despacha
+    JwtFilter ..> CatCtrl : despacha
+    JwtFilter ..> PedCtrl : despacha
+    JwtFilter ..> InvCtrl : despacha
+    JwtFilter ..> SopCtrl : despacha
+    JwtFilter ..> RepCtrl : despacha
+    JwtFilter ..> CliCtrl : despacha
+
+    package "Servicios de Negocio (Lógica del Dominio)" as Servicios {
+        [AuthService] as AuthSvc
+        [CatalogoService] as CatSvc
+        [PedidoService] as PedSvc
+        [InventarioService] as InvSvc
+        [SoporteService] as SopSvc
+        [ReporteService] as RepSvc
+    }
+
+    AuthCtrl ..> AuthSvc : <<call>>
+    CatCtrl ..> CatSvc : <<call>>
+    PedCtrl ..> PedSvc : <<call>>
+    InvCtrl ..> InvSvc : <<call>>
+    SopCtrl ..> SopSvc : <<call>>
+    RepCtrl ..> RepSvc : <<call>>
+
+    ' Dependencia entre servicios
+    PedSvc ..> InvSvc : valida y rebaja stock
+
+    package "Capa de Acceso a Datos (Spring Data JPA)" as Repositorios {
+        [UsuarioRepository] as UserRepo
+        [ProductoRepository] as ProdRepo
+        [PedidoRepository] as PedRepo
+        [InventarioMovimientoRepository] as InvRepo
+        [MensajeChatRepository] as ChatRepo
+        [SolicitudServicioRepository] as SolRepo
+    }
+
+    AuthSvc ..> UserRepo : <<use>>
+    CatSvc ..> ProdRepo : <<use>>
+    PedSvc ..> PedRepo : <<use>>
+    PedSvc ..> ProdRepo : <<use>>
+    InvSvc ..> InvRepo : <<use>>
+    InvSvc ..> ProdRepo : <<use>>
+    SopSvc ..> ChatRepo : <<use>>
+    SopSvc ..> SolRepo : <<use>>
+}
+
+' Interfaces hacia Persistencia
+interface "JDBC / Hibernate ORM" as JDBC_INT
+interface "I/O Sistema de Archivos" as FS_INT
+
+Repositorios -down-( JDBC_INT
+CatSvc -down-( FS_INT
+
+package "Capa de Persistencia" as Persistencia {
+    database "Base de Datos Embebida\n(H2: tecnicsecure.mv.db)" as H2_DB
+    node "Sistema de Archivos Local\n(/uploads - Imágenes de productos)" as FileSystem
+}
+
+JDBC_INT -down-> H2_DB
+FS_INT -down-> FileSystem
+
+@enduml

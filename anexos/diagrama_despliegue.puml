@@ -1,0 +1,97 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+
+' Estilos monocromáticos limpios para despliegue
+skinparam node {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam artifact {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam folder {
+    BorderColor black
+    BackgroundColor white
+}
+
+title DIAGRAMA DE DESPLIEGUE UML - TECNISERVICIOS (TECNISECURE)
+
+' ==========================================
+' NODO CLIENTE: DISPOSITIVO DEL USUARIO
+' ==========================================
+node "Dispositivo de Usuario\n<<device>>\n(PC / Portátil / Móvil)" as DispositivoCliente {
+    node "Navegador Web Estándar\n(Google Chrome / MS Edge / Firefox)" as Navegador {
+        artifact "Frontend Web\n<<artifact>>\n(HTML5, CSS3, Vanilla JS)" as FrontendApp
+        folder "Almacenamiento Local\n<<storage>>\n(LocalStorage del Browser)" as LocalStore {
+            artifact "accessToken (JWT)" as TokenAccess
+            artifact "refreshToken (JWT)" as TokenRefresh
+            artifact "Estado del Carrito de Compras" as CarritoLocal
+        }
+        FrontendApp ..> LocalStore : almacena y lee
+    }
+}
+
+' ==========================================
+' NODO SERVIDOR: ENTORNO DE EJECUCIÓN
+' ==========================================
+node "Servidor de Aplicación\n<<device / executionEnvironment>>\n(Host Local / Servidor Cloud)" as ServidorHost {
+
+    node "Java 21 Runtime Environment (JRE)\n<<executionEnvironment>>" as JVM {
+        
+        node "Servidor Web Embebido\n(Apache Tomcat 10.1 - Puerto 8080)" as Tomcat {
+            
+            artifact "TecniSecureApplication.jar\n<<artifact / executable>>\n(Spring Boot 3.3)" as SpringBootApp {
+                component "Spring Security 6\n(JwtAuthenticationFilter)" as ModuloSeguridad
+                component "Controladores REST API\n(/api/*)" as ControladoresREST
+                component "Servicios de Negocio y Reglas\n(Descuentos, Stock, Pedidos)" as ServiciosNegocio
+                component "Servidor WebSocket\n(Protocolo STOMP)" as ModuloWebSocket
+                component "Capa de Acceso a Datos\n(Spring Data JPA / Hibernate)" as CapaJPA
+                component "Mapeador WebMvcConfig\n(Despacho de Assets Estáticos)" as WebMvc
+                
+                ModuloSeguridad ..> ControladoresREST : autoriza peticiones
+                ControladoresREST ..> ServiciosNegocio : invoca lógica
+                ServiciosNegocio ..> CapaJPA : persiste datos
+            }
+        }
+    }
+
+    ' ==========================================
+    ' ALMACENAMIENTO LOCAL EN DISCO
+    ' ==========================================
+    node "Sistema de Archivos del Servidor\n<<fileSystem>>" as FileSystem {
+        database "Base de Datos Relacional H2\n<<database>>\n(backend/data/tecnicsecure.mv.db)" as H2_DB
+        folder "Directorio de Medios\n<<folder>>\n(/frontend/uploads)" as CarpetaUploads {
+            artifact "Fotografías de Productos\n(Cámaras, Alarmas, Controles)" as FotosProductos
+        }
+        folder "Archivos Fuente Frontend\n<<folder>>\n(/frontend: css, js, img)" as ArchivosFrontend
+    }
+}
+
+' ==========================================
+' CONEXIONES Y PROTOCOLOS DE RED
+' ==========================================
+FrontendApp -- Tomcat : "  HTTP / HTTPS (Puerto 8080)\n  [Peticiones RESTful JSON UTF-8]\n  [Cabecera: Authorization Bearer <JWT>]  "
+
+FrontendApp -- ModuloWebSocket : "  WebSocket TCP (Puerto 8080)\n  [Protocolo STOMP / Mensajería en Vivo]  "
+
+WebMvc ..> ArchivosFrontend : sirve recursos estáticos
+WebMvc ..> CarpetaUploads : publica /uploads/**
+
+CapaJPA -- H2_DB : "  Protocolo JDBC Embebido\n  (jdbc:h2:file:./data/tecnicsecure;MODE=MySQL)  "
+
+ServiciosNegocio ..> CarpetaUploads : "  I/O Local en Disco\n  (Almacenamiento de imágenes)  "
+
+@enduml
