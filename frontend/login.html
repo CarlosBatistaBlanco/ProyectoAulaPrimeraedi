@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión | TECNISECURE</title>
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+  <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:22px;">
+    <a href="index.html" class="auth-logo logo" style="margin-bottom:0;">
+      <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+    <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </div>
+  <div class="auth-card">
+<h1 class="auth-titulo"><i class="fa-solid fa-shield-halved"></i> Iniciar sesión</h1>
+<p class="auth-subtitulo">Accede a tu panel de TECNISECURE.</p>
+
+
+  <div class="auth-alerta auth-alerta--error"></div>
+
+
+  <div class="auth-alerta auth-alerta--ok"></div>
+
+
+<form action="#" method="POST" class="auth-form" id="formLogin">
+  
+  
+
+  <div class="campo">
+    <label for="correo">Correo electrónico</label>
+    <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com" autofocus>
+  </div>
+
+  <div class="campo">
+    <label for="password">Contraseña</label>
+    <div class="campo-password">
+      <input type="password" id="password" name="password" required placeholder="Tu contraseña">
+      <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña">
+        <i class="fa-solid fa-eye"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="campo campo-captcha">
+    <label for="captcha">Verificación: <span id="preguntaCaptcha">¿cuánto es 3 + 4?</span></label>
+    <input type="number" id="captcha" name="captcha" required placeholder="Escribe el resultado" autocomplete="off">
+  </div>
+
+  <div class="auth-fila-extra">
+    <label class="auth-checkbox">
+      <input type="checkbox" name="recordarme" value="1"> <span>Recordarme</span>
+    </label>
+    <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+  </div>
+
+  <button type="submit" class="btn btn--primario btn--full">
+    <i class="fa-solid fa-right-to-bracket"></i> Entrar
+  </button>
+
+  <p class="auth-pie">¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+</form>
+
+
+  </div>
+  <p class="auth-volver"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver al sitio</a></p>
+</div>
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tema.js"></script>
+</body>
+</html>

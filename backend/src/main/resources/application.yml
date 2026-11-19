@@ -1,0 +1,118 @@
+server:
+  port: ${APP_PORT:8080}
+
+spring:
+  application:
+    name: tecnicsecure-api
+
+  # ---------------------------------------------------------------------
+  # Base de datos H2 embebida EN ARCHIVO.
+  # No requiere instalar MySQL, ni XAMPP, ni arrancar ningun servicio:
+  # los datos quedan en backend/data/tecnicsecure.mv.db y viajan con el
+  # proyecto (se pueden copiar o respaldar como cualquier archivo).
+  # ---------------------------------------------------------------------
+  datasource:
+    url: jdbc:h2:file:./data/tecnicsecure;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      # 'update' crea las tablas que falten y conserva los datos existentes.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+    show-sql: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: America/Bogota
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # Sirve el frontend estatico desde el mismo puerto (sustituye a Apache).
+  web:
+    resources:
+      static-locations: file:../frontend/,classpath:/static/
+
+tecnisecure:
+  jwt:
+    # CAMBIALO en produccion (minimo 32 caracteres)
+    secret: ${JWT_SECRET:5b3f8d2a91c64e7fb0a4d8e2c6f19b7a3d5e8f2c4b6a9d1e3f7c8b2a5d9e4f6c}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+    refresh-expiration-minutes: ${JWT_REFRESH_MINUTES:10080}
+  security:
+    max-intentos-fallidos: 5
+    bloqueo-minutos: 15
+  uploads:
+    dir: ${UPLOADS_DIR:../frontend/uploads}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8080,http://127.0.0.1:8080,http://localhost:5500,http://127.0.0.1:5500}
+  mail:
+    habilitado: ${MAIL_ENABLED:false}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    remitente: ${MAIL_FROM:no-responder@tecnisecure.com}
+  admin:
+    correo: ${ADMIN_CORREO:admin@tecnicsecure.com}
+    password: ${ADMIN_PASSWORD:Admin123!}
+  # Asistente virtual del sitio publico (API de DeepSeek, compatible OpenAI).
+  # Sin DEEPSEEK_API_KEY el asistente igual responde con sus respuestas locales
+  # y escala a un asesor cuando no sabe algo.
+  ia:
+    habilitado: ${DEEPSEEK_ENABLED:true}
+    api-key: ${DEEPSEEK_API_KEY:}
+    url: ${DEEPSEEK_URL:https://api.deepseek.com/chat/completions}
+    modelo: ${DEEPSEEK_MODEL:deepseek-chat}
+    timeout-segundos: ${DEEPSEEK_TIMEOUT:25}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    mail:
+      # El correo es opcional: sin SMTP configurado tardaria ~30 s y fallaria.
+      enabled: ${MAIL_ENABLED:false}
+
+logging:
+  level:
+    com.tecnicsecure: INFO

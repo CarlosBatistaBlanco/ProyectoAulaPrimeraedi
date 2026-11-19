@@ -1,0 +1,62 @@
+/* ---------------------------------------------------------------------
+   Validaciones de formularios (frontend/js/validaciones.js)
+   --------------------------------------------------------------------- */
+
+.ayuda-validacion {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  min-height: 0;
+}
+.ayuda-validacion.invalido { color: #c83810; font-weight: 600; }
+.ayuda-validacion.valido { color: var(--verde-ok, #1a7a3c); }
+
+/* Borde rojo mientras el dato no sea correcto */
+input.campo-invalido {
+  border-color: #c83810 !important;
+  box-shadow: 0 0 0 3px rgba(200, 56, 16, 0.12) !important;
+}
+
+/* Desplegable de dominios sugeridos (@gmail.com, @hotmail.com...) */
+.sugerencias-correo {
+  position: absolute;
+  z-index: 60;
+  display: none;
+  margin-top: 4px;
+  min-width: 180px;
+  background: var(--azul-panel, #ffffff);
+  border: 1px solid var(--azul-acero, #d5e3f0);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+.sugerencias-correo button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--texto, #122536);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.sugerencias-correo button:hover {
+  background: rgba(var(--cian-rgb, 0, 107, 133), 0.12);
+  color: var(--cian, #006b85);
+}
+
+/* La etiqueta del campo debe posicionar el desplegable */
+.campo { position: relative; }
+
+/* Envoltorios flex (contraseña con boton de ver) no deben meter el aviso
+   como una columna al lado del input: va siempre debajo, a ancho completo. */
+.campo-password { flex-wrap: wrap; }
+.campo-password > .ayuda-validacion,
+.campo-password > small,
+.campo-password > .ayuda-campo {
+  flex: 1 0 100%;
+  width: 100%;
+}
+.ayuda-validacion { overflow-wrap: anywhere; }

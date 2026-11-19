@@ -1,0 +1,220 @@
+/* ---------------------------------------------------------------------
+   Asistente virtual (chat flotante del sitio publico)
+   Se ubica encima del boton de WhatsApp (abajo a la derecha).
+   --------------------------------------------------------------------- */
+
+.asistente-boton {
+  position: fixed;
+  right: 24px;
+  bottom: 96px;           /* encima del boton de WhatsApp (24 + 58 + 14) */
+  width: 58px;
+  height: 58px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cian, #006b85);
+  color: #ffffff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  z-index: 95;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.asistente-boton:hover { transform: scale(1.08); }
+.asistente-boton__punto {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #2ecc71;
+  border: 2px solid #ffffff;
+}
+/* Hay una respuesta nueva del asesor esperando en el recuadro. */
+.asistente-boton--nuevo {
+  animation: asistente-latido 1.6s ease-in-out infinite;
+}
+.asistente-boton--nuevo .asistente-boton__punto {
+  background: #e74c3c;
+}
+@keyframes asistente-latido {
+  0%, 100% { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0.25); }
+}
+
+.asistente-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 166px;          /* justo encima del boton del asistente */
+  width: 352px;
+  max-width: calc(100vw - 32px);
+  max-height: min(540px, calc(100vh - 200px));
+  display: none;
+  flex-direction: column;
+  background: var(--azul-panel, #ffffff);
+  border: 1px solid var(--azul-acero, #d5e3f0);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  z-index: 96;
+}
+.asistente-panel.activo {
+  display: flex;
+  animation: asistenteEntrar 0.22s ease-out;
+}
+@keyframes asistenteEntrar {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.asistente-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--cian, #006b85);
+  color: #ffffff;
+}
+.asistente-cabecera__info { display: flex; align-items: center; gap: 10px; }
+.asistente-cabecera strong { display: block; font-size: 0.95rem; }
+.asistente-cabecera small { display: block; font-size: 0.75rem; opacity: 0.85; }
+.asistente-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+.asistente-cerrar {
+  background: transparent; border: 0; color: #ffffff;
+  font-size: 1.2rem; cursor: pointer; padding: 4px 6px; border-radius: 6px;
+}
+.asistente-cerrar:hover { background: rgba(255, 255, 255, 0.18); }
+
+.asistente-mensajes {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--azul-oscuro, #f5f9fd);
+}
+
+.asistente-msg { display: flex; flex-direction: column; max-width: 86%; }
+.asistente-msg--bot { align-self: flex-start; }
+.asistente-msg--usuario { align-self: flex-end; align-items: flex-end; }
+/* Respuesta de una persona del equipo desde el panel. */
+.asistente-msg--asesor { align-self: flex-start; max-width: 92%; }
+.asistente-msg__texto {
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  word-wrap: break-word;
+}
+.asistente-msg--bot .asistente-msg__texto {
+  background: var(--azul-panel, #ffffff);
+  color: var(--texto, #122536);
+  border: 1px solid var(--azul-acero, #d5e3f0);
+  border-bottom-left-radius: 4px;
+}
+.asistente-msg--usuario .asistente-msg__texto {
+  background: var(--cian, #006b85);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+.asistente-msg--asesor .asistente-msg__texto {
+  background: #e8f5e9;
+  color: #10331b;
+  border: 1px solid #a5d6a7;
+  border-bottom-left-radius: 4px;
+}
+.asistente-msg--asesor .asistente-msg__nota { color: #1a7a3c; font-weight: 600; }
+.asistente-msg__nota {
+  font-size: 0.72rem;
+  color: var(--texto-tenue, #5a7086);
+  margin-top: 4px;
+}
+
+.asistente-puntos { display: inline-flex; gap: 4px; align-items: center; }
+.asistente-puntos span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--texto-tenue, #5a7086);
+  animation: asistentePunto 1.2s infinite ease-in-out;
+}
+.asistente-puntos span:nth-child(2) { animation-delay: 0.15s; }
+.asistente-puntos span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes asistentePunto {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.asistente-sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 8px;
+  background: var(--azul-oscuro, #f5f9fd);
+}
+.asistente-chip {
+  border: 1px solid var(--cian, #006b85);
+  background: transparent;
+  color: var(--cian, #006b85);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.asistente-chip:hover { background: var(--cian, #006b85); color: #ffffff; }
+
+.asistente-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--azul-acero, #d5e3f0);
+  background: var(--azul-panel, #ffffff);
+}
+.asistente-form input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--azul-acero, #d5e3f0);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  background: var(--azul-oscuro, #f5f9fd);
+  color: var(--texto, #122536);
+}
+.asistente-form input:focus { outline: none; border-color: var(--cian, #006b85); }
+.asistente-form button {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  border: 0; border-radius: 10px;
+  background: var(--cian, #006b85);
+  color: #ffffff; cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.asistente-form button:disabled { opacity: 0.5; cursor: wait; }
+
+.asistente-pie {
+  margin: 0;
+  padding: 0 12px 10px;
+  font-size: 0.68rem;
+  color: var(--texto-tenue, #5a7086);
+  background: var(--azul-panel, #ffffff);
+}
+
+@media (max-width: 480px) {
+  .asistente-panel {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 158px;
+    max-height: calc(100vh - 190px);
+  }
+  .asistente-boton { right: 16px; bottom: 88px; width: 52px; height: 52px; }
+}

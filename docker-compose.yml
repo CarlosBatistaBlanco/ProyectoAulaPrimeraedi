@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------
+# TECNISECURE - arranque con Docker
+#
+#   docker compose up --build -d      -> arranca en http://localhost:8080
+#   docker compose logs -f            -> ver la salida
+#   docker compose down               -> detener
+#
+# Los datos (base de datos H2 y archivos subidos) se guardan en ./backend/data
+# y ./frontend/uploads dentro del proyecto, asi que sobreviven a los reinicios.
+# Funciona igual en Windows, macOS y Linux. Requiere Docker Desktop (WSL 2 en Windows).
+# ---------------------------------------------------------------------
+services:
+  tecnicsecure:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: tecnicsecure-api:2.0.0
+    container_name: tecnicsecure
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      APP_PORT: 8080
+      # Perfil con la base de datos en el volumen /app/data
+      SPRING_PROFILES_ACTIVE: docker
+      TZ: America/Bogota
+      JPA_DDL_AUTO: update
+      UPLOADS_DIR: /app/frontend/uploads
+      CORS_ORIGINS: "http://localhost:${APP_PORT:-8080},http://127.0.0.1:${APP_PORT:-8080}"
+      # Sobrescribe estos valores creando un archivo .env junto a este archivo
+      JWT_SECRET: "${JWT_SECRET:-5b3f8d2a91c64e7fb0a4d8e2c6f19b7a3d5e8f2c4b6a9d1e3f7c8b2a5d9e4f6c}"
+      ADMIN_CORREO: "${ADMIN_CORREO:-admin@tecnicsecure.com}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-Admin123!}"
+      MAIL_ENABLED: "${MAIL_ENABLED:-false}"
+      MAIL_HOST: "${MAIL_HOST:-smtp.gmail.com}"
+      MAIL_PORT: "${MAIL_PORT:-587}"
+      MAIL_USERNAME: "${MAIL_USERNAME:-}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD:-}"
+      # Asistente virtual con IA (opcional). Sin clave usa el modo local.
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-deepseek-chat}"
+    volumes:
+      # El sitio web completo (HTML, CSS, JS, imagenes) y los archivos subidos
+      - ./frontend:/app/frontend
+      # La base de datos vive en un VOLUMEN NATIVO de Docker: es mucho mas
+      # estable que un bind mount de Windows (que provocaba corrupciones).
+      - tecnicsecure-data:/app/data
+      # Copia legible de la base en el proyecto (respaldo automatico)
+      - ./backend/data:/app/respaldos
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsS http://127.0.0.1:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 20
+
+volumes:
+  # Base de datos persistente (sobrevive a reinicios y a "docker compose down")
+  tecnicsecure-data:

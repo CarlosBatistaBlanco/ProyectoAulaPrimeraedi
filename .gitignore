@@ -1,0 +1,35 @@
+# --- Configuracion local / secretos ---
+.env
+CREDENCIALES.txt
+
+# --- Compilacion Java / Maven ---
+backend/target/
+backend/run.log
+*.class
+
+# --- Base de datos H2 (datos locales de cada equipo) ---
+backend/data/*.mv.db
+backend/data/*.trace.db
+backend/data/*.lock.db
+backend/data/_recuperado/
+backend/data/tecnicsecure-*.mv.db
+
+# --- Dependencias de Node (solo para pruebas automatizadas) ---
+node_modules/
+package-lock.json
+
+# --- Archivos de trabajo temporales ---
+_*.js
+_*.py
+_*.png
+_*.json
+_app.jar
+_limpieza/
+
+# --- Editores y sistema operativo ---
+.idea/
+.vscode/
+*.iml
+Thumbs.db
+.DS_Store
+desktop.ini

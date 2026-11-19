@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------
+# Perfil "docker": base de datos H2 en archivo sobre un volumen montado.
+#
+# Objetivo: que un fallo de escritura del disco (I/O error del volumen)
+# no deje la conexion inutilizable durante toda la vida del proceso.
+# ---------------------------------------------------------------------
+
+spring:
+  datasource:
+    url: jdbc:h2:file:/app/data/tecnicsecure;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;WRITE_DELAY=0
+    hikari:
+      # Volumen nativo de Docker: escrituras inmediatas (WRITE_DELAY=0) y
+      # reconexion automatica si el disco falla puntualmente.
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      validation-timeout: 5000
+      keepalive-time: 60000
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}

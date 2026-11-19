@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restablecer contraseña | TECNISECURE</title>
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+  <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:22px;">
+    <a href="index.html" class="auth-logo logo" style="margin-bottom:0;">
+      <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+    <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </div>
+  <div class="auth-card">
+<h1 class="auth-titulo"><i class="fa-solid fa-lock-open"></i> Nueva contraseña</h1>
+<p class="auth-subtitulo">Escribe tu nueva contraseña.</p>
+  <div class="auth-alerta auth-alerta--error"></div>
+
+  <form action="#" method="POST" class="auth-form" id="formRestablecer">
+    
+    
+
+    <div class="campo">
+      <label for="password">Nueva contraseña</label>
+      <div class="campo-password">
+        <input type="password" id="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número">
+        <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="password2">Confirmar contraseña</label>
+      <div class="campo-password">
+        <input type="password" id="password2" name="password2" required placeholder="Repite tu contraseña">
+        <button type="button" class="toggle-password" data-target="password2" aria-label="Mostrar u ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn--primario btn--full"><i class="fa-solid fa-check"></i> Guardar nueva contraseña</button>
+  </form>
+  </div>
+  <p class="auth-volver"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver al sitio</a></p>
+</div>
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tema.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras | TECNISECURE</title>
+<meta name="description" content="Guarda los equipos que te interesan y compáralos antes de comprar.">
+<link rel="icon" href="../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/validaciones.css">
+<link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="contenedor top-bar__inner">
+    <div class="top-bar__contacto">
+      <span><i class="fa-solid fa-phone"></i> +57 300 123 4567</span>
+      <span><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</span>
+    </div>
+    <div class="top-bar__redes">
+      <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://wa.me/573001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+    </div>
+  </div>
+</div>
+
+<header class="nav-principal" id="navPrincipal">
+  <div class="contenedor nav-principal__inner">
+    <a href="../index.html#inicio" class="logo">
+      <img src="../img/logo/logo-claro.svg" alt="Logo TECNISECURE" class="logo__claro">
+      <img src="../img/logo/logo.svg" alt="Logo TECNISECURE" class="logo__oscuro">
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="menu" id="menuPrincipal">
+      <ul>
+        <li><a href="../index.html#inicio">Inicio</a></li>
+        <li><a href="../index.html#servicios">Servicios</a></li>
+        <li><a href="productos.html">Productos</a></li>
+        <li><a href="lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="../index.html#contacto">Contacto</a></li>
+      </ul>
+      <a href="lista_deseos.html" class="btn-deseos" title="Mi Lista de Compras">
+        <i class="fa-solid fa-heart"></i>
+        <span class="deseos-contador" id="deseosContador">0</span>
+      </a>
+      <a href="productos.html" class="btn-carrito" title="Ver carrito">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="carrito-contador" id="carritoContador">0</span>
+      </a>
+      <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+      <a href="../login.html" class="btn-cuenta" id="btnCuenta"><i class="fa-solid fa-user"></i> Iniciar sesión</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="pagina-header">
+    <div class="contenedor">
+      <p class="seccion__eyebrow">Tu selección</p>
+      <h1 class="seccion__titulo">Lista de Compras</h1>
+      <p class="seccion__descripcion">Guarda los equipos que te interesan y compáralos antes de decidir. Puedes pasarlos al carrito cuando quieras.</p>
+    </div>
+  </section>
+
+  <section class="productos-destacados" style="padding-top:0;">
+    <div class="contenedor">
+      <div class="productos__grid" id="listaDeseosGrid"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__bottom">
+    <p>&copy; 2026 TECNISECURE. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script src="../js/validaciones.js"></script>
+<script src="../js/tema.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/carrito.js"></script>
+<script src="../js/lista-deseos.js"></script>
+<script src="../js/auth-paginas.js"></script>
+</body>
+</html>

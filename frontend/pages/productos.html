@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productos | TECNISECURE</title>
+<meta name="description" content="TECNISECURE: instalación de cámaras de seguridad, alarmas, control de acceso y monitoreo 24/7.">
+<link rel="icon" href="../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/validaciones.css">
+<link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+<div class="top-bar">
+  <div class="contenedor top-bar__inner">
+    <div class="top-bar__contacto">
+      <span><i class="fa-solid fa-phone"></i> +57 300 123 4567</span>
+      <span><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</span>
+    </div>
+    <div class="top-bar__redes">
+      <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://wa.me/573001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+      <a href="https://tiktok.com" target="_blank" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+    </div>
+  </div>
+</div>
+
+<header class="nav-principal" id="navPrincipal">
+  <div class="contenedor nav-principal__inner">
+    <a href="../index.html#inicio" class="logo">
+      <img src="../img/logo/logo-claro.svg" alt="Logo TECNISECURE" class="logo__claro">
+      <img src="../img/logo/logo.svg" alt="Logo TECNISECURE" class="logo__oscuro">
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="menu" id="menuPrincipal">
+      <ul>
+        <li><a href="../index.html#inicio">Inicio</a></li>
+        <li><a href="../index.html#servicios">Servicios</a></li>
+        <li><a href="../pages/productos.html">Productos</a></li>
+        <li><a href="../pages/lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="../index.html#contacto">Contacto</a></li>
+      </ul>
+      <a href="../pages/lista_deseos.html" class="btn-deseos" id="btnAbrirDeseos" title="Mi Lista de Compras">
+        <i class="fa-solid fa-heart"></i>
+        <span class="deseos-contador" id="deseosContador">0</span>
+      </a>
+      <a href="../pages/productos.html" class="btn-carrito" id="btnAbrirCarrito" title="Ver carrito">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="carrito-contador" id="carritoContador">0</span>
+      </a>
+
+      <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+
+      <a href="../login.html" class="btn-cuenta" id="btnCuenta">
+        <i class="fa-solid fa-user"></i> Iniciar sesión
+      </a>
+    </nav>
+  </div>
+</header>
+
+  <section class="pagina-header">
+    <div class="contenedor">
+      <p class="seccion__eyebrow">Catálogo</p>
+      <h1 class="seccion__titulo">Nuestros Productos</h1>
+      <p class="seccion__descripcion">Equipos de seguridad de alta calidad, listos para instalar. Agrega al carrito y solicita tu pedido en línea.</p>
+    </div>
+  </section>
+
+<main>
+  <section class="catalogo">
+    <div class="contenedor catalogo__layout">
+
+      <aside class="catalogo__filtros">
+        <h3>Categorías</h3>
+        <ul id="listaCategorias">
+          <li><a href="#" class="activo">Todas <span class="catalogo__conteo">—</span></a></li>
+        </ul>
+
+        <button type="button" class="catalogo__ayuda" onclick="abrirModalAsesoria()" title="Solicitar asesoría para encontrar un equipo">
+          <i class="fa-solid fa-headset"></i>
+          <span>¿No encuentras lo que buscas? <strong>Te asesoramos</strong></span>
+        </button>
+      </aside>
+
+      <div class="catalogo__productos">
+        <div class="catalogo__barra">
+          <form method="GET" action="productos.html" class="catalogo__buscador" id="formBuscarCatalogo">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="buscar" id="buscarCatalogo" placeholder="Buscar cámaras, alarmas, sensores, accesorios...">
+            <button type="submit">Buscar</button>
+          </form>
+
+          <div class="catalogo__barra-derecha">
+            <p class="catalogo__resultado" id="resultadoCatalogo"><strong>0</strong> productos</p>
+
+            <label class="catalogo__orden">
+              <span>Ordenar por</span>
+              <select id="ordenCatalogo">
+                <option value="relevancia">Destacados primero</option>
+                <option value="precio_asc">Precio: menor a mayor</option>
+                <option value="precio_desc">Precio: mayor a menor</option>
+                <option value="nombre">Nombre (A-Z)</option>
+                <option value="nuevos">Más recientes</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="productos__grid" id="listaProductos">
+          <p class="cargando">Cargando productos…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ============ PANEL LATERAL DEL CARRITO ============ -->
+<div class="carrito-overlay" id="carritoOverlay"></div>
+<aside class="carrito-panel" id="carritoPanel">
+  <div class="carrito-panel__header">
+    <h3><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h3>
+    <button id="cerrarCarrito" aria-label="Cerrar carrito">&times;</button>
+  </div>
+
+  <div class="carrito-panel__items" id="carritoItems">
+    <!-- Los productos se insertan aquí dinámicamente con JS -->
+  </div>
+
+  <!-- SECCIÓN: LISTA DE PRODUCTOS DESEADA -->
+  <div class="carrito-deseos-seccion" id="carritoDeseosSeccion">
+    <button type="button" class="btn-toggle-deseos-carrito" id="btnToggleDeseosCarrito" onclick="toggleDeseosCarrito()" aria-expanded="false">
+      <span class="btn-toggle-deseos-carrito__texto">
+        <i class="fa-solid fa-heart"></i>
+        <span id="textoToggleDeseos">Mostrar lista de productos deseada</span>
+        <span class="deseos-chip-contador" id="carritoDeseosCount">0</span>
+      </span>
+      <i class="fa-solid fa-chevron-down flecha-deseos" id="flechaDeseosCarrito"></i>
+    </button>
+    <div class="carrito-deseos-contenedor" id="carritoDeseosContenedor">
+      <div class="carrito-deseos-lista" id="carritoDeseosLista">
+        <!-- Renderizado dinámico desde JS con los productos deseados -->
+      </div>
+    </div>
+  </div>
+
+  <div class="carrito-panel__resumen">
+    <div class="carrito-total">
+      <span>Total:</span>
+      <span id="carritoTotal">$0</span>
+    </div>
+
+    <form id="formCheckout" class="checkout-form" autocomplete="off">
+      <label for="chkNombre">Nombre completo *</label>
+      <input type="text" id="chkNombre" name="nombre" placeholder="Nombre de quien recibe" autocomplete="off" required>
+
+      <label for="chkCorreo">Correo electrónico *</label>
+      <input type="email" id="chkCorreo" name="correo" placeholder="correo@ejemplo.com" autocomplete="off" required>
+
+      <label for="chkTelefono">Teléfono de contacto *</label>
+      <input type="tel" id="chkTelefono" name="telefono" placeholder="Ej. 300 123 4567" autocomplete="off" required>
+
+      <label for="chkDireccion">Dirección exacta de entrega / instalación *</label>
+      <div class="checkout-gps-row">
+        <input type="text" id="chkDireccion" name="direccion" placeholder="Calle, carrera, barrio, ciudad..." autocomplete="street-address" required>
+        <button type="button" class="btn-gps" id="btnBuscarMapaCheckout" title="Ubicar dirección en el mapa">
+          <i class="fa-solid fa-magnifying-glass-location"></i>
+        </button>
+        <button type="button" class="btn-gps" id="btnGpsCheckout" title="Usar mi ubicación GPS actual">
+          <i class="fa-solid fa-location-crosshairs"></i> GPS
+        </button>
+      </div>
+      <input type="hidden" id="chkLatitud" name="latitud">
+      <input type="hidden" id="chkLongitud" name="longitud">
+
+      <div class="checkout-mapa-box" id="checkoutMapaBox" style="display:none;">
+        <iframe id="mapaCheckoutIframe" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Ubicación de entrega en Google Maps"></iframe>
+        <div class="checkout-mapa-pie">
+          <span id="checkoutCoordsTexto">Ubicación seleccionada</span>
+          <a id="checkoutEnlaceMaps" href="#" target="_blank" rel="noopener">Abrir en Google Maps</a>
+        </div>
+      </div>
+
+      <label for="chkMetodoPago">Método de pago *</label>
+      <select id="chkMetodoPago" name="metodoPago" required>
+        <option value="">Selecciona cómo deseas pagar…</option>
+        <option value="Transferencia / Nequi">Transferencia bancaria / Nequi / Daviplata</option>
+        <option value="Efectivo contraentrega">Efectivo contraentrega</option>
+        <option value="Tarjeta">Tarjeta de crédito o débito</option>
+      </select>
+
+      <div id="checkoutPagoGuia" class="checkout-pago-info" style="display:none;"></div>
+      <input type="text" id="chkDetallePago" name="detallePago" placeholder="Referencia de transferencia, billete o nota de pago (opcional)" style="display:none;">
+
+      <button type="submit" class="btn btn--primario btn--full">
+        <i class="fa-solid fa-lock"></i> Confirmar pedido
+      </button>
+    </form>
+    <p class="form-respuesta" id="respuestaPedido"></p>
+  </div>
+</aside>
+
+<!-- ============ MODAL ASESORÍA / NO ENCUENTRAS LO QUE BUSCAS ============ -->
+<div class="modal-asesoria" id="modalAsesoria" role="dialog" aria-modal="true" aria-labelledby="tituloModalAsesoria">
+  <div class="modal-asesoria__caja">
+    <button type="button" class="modal-asesoria__cerrar" id="cerrarModalAsesoria" onclick="cerrarModalAsesoria()" aria-label="Cerrar ventana">&times;</button>
+    
+    <div class="modal-asesoria__header">
+      <div class="modal-asesoria__icono">
+        <i class="fa-solid fa-headset"></i>
+      </div>
+      <div>
+        <h3 id="tituloModalAsesoria">¿No encuentras lo que buscas?</h3>
+        <p>Nuestro equipo técnico te ayuda a conseguir cualquier equipo o repuesto con cotización inmediata y garantía oficial.</p>
+      </div>
+    </div>
+
+    <form id="formAsesoriaProducto" class="modal-asesoria__form">
+      <input type="hidden" name="tipo" value="mensaje">
+      <input type="hidden" name="asunto" value="Consulta de producto especial (No encontrado en catálogo)">
+
+      <div class="campo">
+        <label for="asesoriaNombre">Nombre completo *</label>
+        <input type="text" id="asesoriaNombre" name="nombre" placeholder="Tu nombre" required 
+              >
+      </div>
+
+      <div class="modal-asesoria__fila">
+        <div class="campo">
+          <label for="asesoriaTelefono">Teléfono o WhatsApp *</label>
+          <input type="tel" id="asesoriaTelefono" name="telefono" placeholder="Ej. 300 123 4567" required
+                >
+        </div>
+        <div class="campo">
+          <label for="asesoriaCorreo">Correo electrónico *</label>
+          <input type="email" id="asesoriaCorreo" name="correo" placeholder="correo@ejemplo.com" required
+                >
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="asesoriaProducto">¿Qué producto, referencia o repuesto necesitas? *</label>
+        <textarea id="asesoriaProducto" name="mensaje" rows="3" required
+                  placeholder="Cuéntanos el modelo, marca, características técnicas o el tipo de solución que necesitas (ej. Cámara domo térmica para bodega exterior, sensor de barrera fotoeléctrica, NVR 32 canales)..."></textarea>
+      </div>
+
+      <div class="modal-asesoria__acciones">
+        <button type="submit" class="btn btn--primario">
+          <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+        </button>
+        <a href="https://wa.me/573001234567?text="
+           target="_blank" class="btn-whatsapp-asesoria" title="Chatear directamente por WhatsApp">
+          <i class="fa-brands fa-whatsapp"></i> Hablar por WhatsApp
+        </a>
+      </div>
+
+      <p class="form-respuesta" id="respuestaAsesoria"></p>
+    </form>
+  </div>
+</div>
+</main>
+
+<footer class="footer" id="contacto-footer">
+  <div class="contenedor footer__grid">
+    <div class="footer__col">
+      <span class="logo">
+        <img src="../img/logo/logo-claro.svg" alt="TECNISECURE" class="footer__logo logo__claro">
+        <img src="../img/logo/logo.svg" alt="TECNISECURE" class="footer__logo logo__oscuro">
+      </span>
+      <p>Más de 10 años protegiendo hogares y negocios con tecnología de vigilancia confiable, monitoreo 24/7 y soporte técnico especializado.</p>
+      <div class="footer__redes">
+        <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+        <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://wa.me/573001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="https://tiktok.com" target="_blank" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+        <a href="https://youtube.com" target="_blank" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+
+    <div class="footer__col">
+      <h4>Enlaces</h4>
+      <ul>
+        <li><a href="../index.html#inicio">Inicio</a></li>
+        <li><a href="../index.html#servicios">Servicios</a></li>
+        <li><a href="../pages/productos.html">Productos</a></li>
+        <li><a href="../pages/lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="../index.html#nosotros">Nosotros</a></li>
+        <li><a href="../index.html#contacto">Contacto</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4>Servicios</h4>
+      <ul>
+        <li>Instalación de cámaras CCTV</li>
+        <li>Monitoreo remoto 24/7</li>
+        <li>Alarmas y sensores</li>
+        <li>Control de acceso biométrico</li>
+        <li>Mantenimiento preventivo</li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4>Contáctanos</h4>
+      <ul class="footer__contacto">
+        <li><i class="fa-solid fa-location-dot"></i> Cra. 10 #20-30, Cartagena, Colombia</li>
+        <li><i class="fa-solid fa-phone"></i> +57 300 123 4567</li>
+        <li><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</li>
+        <li><i class="fa-solid fa-clock"></i> Lun - Sáb: 8:00 am - 6:00 pm</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <p>&copy; 2026 TECNISECURE. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<a href="https://wa.me/573001234567" target="_blank" class="whatsapp-flotante" aria-label="Escríbenos por WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<script src="../js/api.js"></script>
+<script src="../js/validaciones.js"></script>
+<script src="../js/tema.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/carrito.js"></script>
+<script src="../js/lista-deseos.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/catalogo.js"></script>
+</body>
+</html>

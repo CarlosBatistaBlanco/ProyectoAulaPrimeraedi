@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitar servicio | TECNISECURE</title>
+<link rel="icon" href="../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/validaciones.css">
+<link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="contenedor top-bar__inner">
+    <div class="top-bar__contacto">
+      <span><i class="fa-solid fa-phone"></i> +57 300 123 4567</span>
+      <span><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</span>
+    </div>
+  </div>
+</div>
+
+<header class="nav-principal" id="navPrincipal">
+  <div class="contenedor nav-principal__inner">
+    <a href="../index.html#inicio" class="logo">
+      <img src="../img/logo/logo-claro.svg" alt="Logo TECNISECURE" class="logo__claro">
+      <img src="../img/logo/logo.svg" alt="Logo TECNISECURE" class="logo__oscuro">
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="menu" id="menuPrincipal">
+      <ul>
+        <li><a href="../index.html#inicio">Inicio</a></li>
+        <li><a href="../index.html#servicios">Servicios</a></li>
+        <li><a href="productos.html">Productos</a></li>
+        <li><a href="lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="../index.html#contacto">Contacto</a></li>
+      </ul>
+      <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+      <a href="../login.html" class="btn-cuenta" id="btnCuenta"><i class="fa-solid fa-user"></i> Iniciar sesión</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="pagina-header">
+    <div class="contenedor">
+      <p class="seccion__eyebrow">Servicios</p>
+      <h1 class="seccion__titulo" id="tituloServicio">Solicitar servicio</h1>
+      <p class="seccion__descripcion" id="descripcionServicio">Cargando información del servicio…</p>
+    </div>
+  </section>
+
+  <section class="contacto" style="padding-top:0;">
+    <div class="contenedor" style="max-width:640px;">
+
+      <div class="contacto__form" style="padding:32px;">
+
+        <!-- Selector de tipo de solicitud -->
+        <div class="tipo-solicitud" id="tipoSolicitud">
+          <button type="button" class="tipo-solicitud__opcion activo" data-tipo="cotizacion">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Quiero una cotización</span>
+            <small>Te contactamos con un precio, sin fecha fija</small>
+          </button>
+          <button type="button" class="tipo-solicitud__opcion" data-tipo="cita">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Quiero agendar una cita</span>
+            <small>Elige el día y la hora que prefieras</small>
+          </button>
+        </div>
+
+        <form action="#" method="POST" class="auth-form" id="formSolicitud">
+          
+          <input type="hidden" name="id_servicio">
+          <input type="hidden" name="tipo" id="tipoInput" value="cotizacion">
+
+          <div class="campo">
+            <label for="nombre">Nombre completo</label>
+            <input type="text" id="nombre" name="nombre" required
+                   placeholder="Ej: Ana Martínez">
+          </div>
+
+          <div class="campo">
+            <label for="correo">Correo electrónico</label>
+            <input type="email" id="correo" name="correo" required
+                   placeholder="tucorreo@ejemplo.com">
+          </div>
+
+          <div class="campo">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" required
+                   placeholder="300 123 4567">
+          </div>
+
+          <div class="campo">
+            <label for="direccion">Dirección donde se necesita el servicio</label>
+            <input type="text" id="direccion" name="direccion" placeholder="Barrio, calle, ciudad">
+          </div>
+
+          <div class="campo-fecha-hora" id="campoFechaHora" style="display:none;">
+            <div class="campo">
+              <label for="fecha_preferida">Fecha preferida</label>
+              <input type="date" id="fecha_preferida" name="fecha_preferida" min="">
+            </div>
+            <div class="campo">
+              <label for="hora_preferida">Hora preferida</label>
+              <input type="time" id="hora_preferida" name="hora_preferida" min="08:00" max="18:00">
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="descripcion">Cuéntanos brevemente qué necesitas</label>
+            <textarea id="descripcion" name="descripcion" rows="4" required
+                      placeholder="Ej: Necesito 3 cámaras para el frente y patio de mi casa..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--primario btn--full">
+            <i class="fa-solid fa-paper-plane"></i> <span id="textoBoton">Enviar solicitud de cotización</span>
+          </button>
+        </form>
+        
+      </div>
+
+      <p style="text-align:center; margin-top:20px;">
+        <a href="../index.html#servicios" style="color:var(--texto-tenue);"><i class="fa-solid fa-arrow-left"></i> Volver a servicios</a>
+      </p>
+    </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__bottom">
+    <p>&copy; 2026 TECNISECURE. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script src="../js/validaciones.js"></script>
+<script src="../js/tema.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/auth-paginas.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/solicitud.js"></script>
+</body>
+</html>

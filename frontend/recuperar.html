@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar contraseña | TECNISECURE</title>
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+  <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:22px;">
+    <a href="index.html" class="auth-logo logo" style="margin-bottom:0;">
+      <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+    <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+  </div>
+  <div class="auth-card">
+  <div class="auth-alerta auth-alerta--info" id="enlaceRecuperacion" style="display:none">
+    <b>Modo de prueba (sin servidor de correo configurado):</b><br>
+    En un sitio en producción este enlace llegaría a tu correo. Por ahora, haz clic aquí para continuar:<br>
+    <a href="#" id="enlaceRestablecer">Restablecer mi contraseña</a>
+  </div>
+<h1 class="auth-titulo"><i class="fa-solid fa-key"></i> Recuperar contraseña</h1>
+<p class="auth-subtitulo">Escribe tu correo y te enviaremos un enlace para restablecerla.</p>
+
+<div class="auth-alerta auth-alerta--error"></div>
+<div class="auth-alerta auth-alerta--ok"></div>
+
+
+<form action="#" method="POST" class="auth-form" id="formRecuperar">
+  
+  <div class="campo">
+    <label for="correo">Correo electrónico</label>
+    <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com" autofocus>
+  </div>
+  <button type="submit" class="btn btn--primario btn--full">
+    <i class="fa-solid fa-paper-plane"></i> Enviar enlace de recuperación
+  </button>
+  <p class="auth-pie"><a href="login.html">Volver a iniciar sesión</a></p>
+</form>
+  </div>
+  <p class="auth-volver"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver al sitio</a></p>
+</div>
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tema.js"></script>
+</body>
+</html>
