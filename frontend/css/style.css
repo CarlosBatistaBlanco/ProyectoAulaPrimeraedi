@@ -276,6 +276,31 @@ html[data-tema="oscuro"] .logo .logo__oscuro { display: block; }
 }
 .btn-cuenta:hover { background: var(--cian); color: var(--sobre-acento); }
 
+/* Usuario con la sesion iniciada: el boton lleva a su panel */
+.btn-cuenta--activa {
+  background: var(--cian);
+  color: var(--sobre-acento);
+  max-width: 190px;
+}
+.btn-cuenta--activa:hover { background: var(--cian-oscuro, #00566b); color: var(--sobre-acento); }
+.btn-cuenta__nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn-salir-sesion {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--azul-acero);
+  color: var(--texto);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: var(--transicion);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.btn-salir-sesion:hover { background: #c83810; color: #ffffff; }
+
 /* ---------------- BOTÓN DE TEMA CLARO/OSCURO ---------------- */
 .btn-tema {
   width: 40px; height: 40px;

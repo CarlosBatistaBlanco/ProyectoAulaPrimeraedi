@@ -46,36 +46,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ---------------- 2b. VIDEO DEL HERO ----------------
-     Si video/video.mp4 existe y el navegador puede reproducirlo, se
-     oculta la animación CSS de respaldo y se garantiza el autoplay
-     (algunos navegadores lo bloquean si el video no está silenciado). */
+     El video es opcional: si video/encabezado.mp4 no existe, el hero se ve
+     con el poster y la animacion CSS, sin generar un 404 en la consola.
+     Solo se pide el archivo cuando el servidor lo tiene disponible. */
   const heroVideo = document.querySelector('.hero__video');
   if (heroVideo) {
+    const rutaVideo = heroVideo.dataset.videoOpcional;
     const marcarConVideo = () => document.body.classList.add('hero-con-video');
 
-    if (heroVideo.readyState >= 2) {
-      marcarConVideo();
-    } else {
-      heroVideo.addEventListener('loadeddata', marcarConVideo, { once: true });
-    }
-
-    // Un <source> que falla no dispara 'error' en el <video>: se escucha
-    // en el source para no dejar el respaldo CSS tapando nada.
-    heroVideo.querySelectorAll('source').forEach(src => {
-      src.addEventListener('error', () => {
-        document.body.classList.remove('hero-con-video');
+    const prepararReproduccion = () => {
+      if (heroVideo.readyState >= 2) {
+        marcarConVideo();
+      } else {
+        heroVideo.addEventListener('loadeddata', marcarConVideo, { once: true });
+      }
+      heroVideo.querySelectorAll('source').forEach(src => {
+        src.addEventListener('error', () => document.body.classList.remove('hero-con-video'));
       });
-    });
-
-    heroVideo.muted = true;
-    const intentarReproducir = () => {
-      const p = heroVideo.play();
-      if (p && p.catch) { p.catch(() => { /* autoplay bloqueado: queda el póster */ }); }
+      heroVideo.muted = true;
+      const intentarReproducir = () => {
+        const p = heroVideo.play();
+        if (p && p.catch) { p.catch(() => { /* autoplay bloqueado: queda el póster */ }); }
+      };
+      intentarReproducir();
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) { intentarReproducir(); }
+      });
     };
-    intentarReproducir();
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) { intentarReproducir(); }
-    });
+
+    if (!rutaVideo) {
+      prepararReproduccion();
+    } else {
+      // HEAD para saber si el archivo existe antes de pedirlo entero.
+      fetch(rutaVideo, { method: 'HEAD' })
+        .then((r) => {
+          if (!r.ok) return;
+          const fuente = document.createElement('source');
+          fuente.src = rutaVideo;
+          fuente.type = 'video/mp4';
+          heroVideo.appendChild(fuente);
+          heroVideo.load();
+          prepararReproduccion();
+        })
+        .catch(() => { /* sin video: se mantiene el poster */ });
+    }
   }
 
   /* ---------------- 3. NAV CON SOMBRA AL HACER SCROLL ---------------- */
@@ -139,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="modal-zoom__caja">
         <button class="modal-zoom__cerrar" aria-label="Cerrar modal">&times;</button>
         <div class="modal-zoom__visor">
-          <img src="" alt="" id="modalZoomImg">
+          <img alt="" id="modalZoomImg">
         </div>
         <div class="modal-zoom__detalles">
           <span class="modal-zoom__marca" id="modalZoomMarca"></span>

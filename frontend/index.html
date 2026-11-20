@@ -71,10 +71,10 @@
 
 <main>
   <section class="hero" id="inicio">
-    <video class="hero__video" autoplay muted loop playsinline poster="img/servicios/poster-hero.jpg">
-      <!-- Video del encabezado: se toma de video/video.mp4 -->
-      <source src="video/video.mp4" type="video/mp4">
-    </video>
+    <!-- Video del encabezado: se toma de video/encabezado.mp4 (opcional).
+         Si el archivo no existe, se ve el poster y la animacion CSS. -->
+    <video class="hero__video" autoplay muted loop playsinline poster="img/servicios/poster-hero.jpg"
+           data-video-opcional="video/encabezado.mp4"></video>
 
     <!-- Animación de centro de monitoreo (CSS puro, sin archivos externos).
          Se oculta sola cuando el video carga correctamente. -->
@@ -306,6 +306,7 @@
 <script src="js/catalogo.js"></script>
 <script src="js/carrito.js"></script>
 <script src="js/lista-deseos.js"></script>
+<script src="js/auth-paginas.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/asistente.js"></script>
 </body>

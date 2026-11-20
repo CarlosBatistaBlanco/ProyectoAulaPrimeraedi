@@ -214,16 +214,51 @@ function inicializarRestablecer() {
 
 /* ------------- Encabezado dinámico (usuario conectado) ------------- */
 
+function rutaPanel(rol) {
+  // MENSAJES_REDIRECCION apunta a la raiz del sitio; se antepone RUTA_BASE
+  // para que funcione igual desde index.html y desde pages/.
+  const relativa = MENSAJES_REDIRECCION[rol];
+  return relativa ? (window.RUTA_BASE || '') + relativa : (window.RUTA_BASE || '') + 'index.html';
+}
+
 function pintarEstadoSesion() {
   const enlaceCuenta = document.getElementById('btnCuenta');
   if (!enlaceCuenta) return;
 
   const usuario = Api.getUsuario();
-  if (Api.estaAutenticado() && usuario) {
-    const primerNombre = (usuario.nombre || '').split(' ')[0];
-    enlaceCuenta.innerHTML = `<i class="fa-solid fa-user"></i> ${escaparHtml(primerNombre)}`;
-    enlaceCuenta.href = MENSAJES_REDIRECCION[usuario.rol] || 'index.html';
-    enlaceCuenta.title = 'Ir a mi panel';
+  const autenticado = Api.estaAutenticado() && usuario;
+
+  if (!autenticado) {
+    enlaceCuenta.href = (window.RUTA_BASE || '') + 'login.html';
+    enlaceCuenta.title = 'Iniciar sesión';
+    return;
+  }
+
+  const nombre = (usuario.nombre || usuario.correo || '').trim();
+  const primerNombre = nombre.split(' ')[0] || 'Mi cuenta';
+  const destino = rutaPanel(usuario.rol);
+
+  enlaceCuenta.innerHTML =
+    `<i class="fa-solid fa-user"></i> <span class="btn-cuenta__nombre">${escaparHtml(primerNombre)}</span>`;
+  enlaceCuenta.href = destino;
+  enlaceCuenta.title = 'Ir a mi panel';
+  enlaceCuenta.classList.add('btn-cuenta--activa');
+
+  // Boton de cerrar sesion junto al de la cuenta (solo si hay sesion).
+  let salir = document.getElementById('btnSalirSesion');
+  if (!salir) {
+    salir = document.createElement('button');
+    salir.type = 'button';
+    salir.id = 'btnSalirSesion';
+    salir.className = 'btn-salir-sesion';
+    salir.title = 'Cerrar sesión';
+    salir.setAttribute('aria-label', 'Cerrar sesión');
+    salir.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i>';
+    salir.addEventListener('click', () => {
+      Api.cerrarSesion();
+      window.location.href = (window.RUTA_BASE || '') + 'index.html';
+    });
+    enlaceCuenta.insertAdjacentElement('afterend', salir);
   }
 }
 
