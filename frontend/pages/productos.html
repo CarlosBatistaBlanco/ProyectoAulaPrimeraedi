@@ -124,36 +124,58 @@
 <!-- ============ PANEL LATERAL DEL CARRITO ============ -->
 <div class="carrito-overlay" id="carritoOverlay"></div>
 <aside class="carrito-panel" id="carritoPanel">
-  <div class="carrito-panel__header">
-    <h3><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h3>
-    <button id="cerrarCarrito" aria-label="Cerrar carrito">&times;</button>
-  </div>
 
-  <div class="carrito-panel__items" id="carritoItems">
-    <!-- Los productos se insertan aquí dinámicamente con JS -->
-  </div>
+  <!-- ========== VISTA 1: LISTA DE PRODUCTOS ========== -->
+  <div class="carrito-vista" id="carritoVistaLista">
+    <div class="carrito-panel__header">
+      <h3><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h3>
+      <button id="cerrarCarrito" aria-label="Cerrar carrito">&times;</button>
+    </div>
 
-  <!-- SECCIÓN: LISTA DE PRODUCTOS DESEADA -->
-  <div class="carrito-deseos-seccion" id="carritoDeseosSeccion">
-    <button type="button" class="btn-toggle-deseos-carrito" id="btnToggleDeseosCarrito" onclick="toggleDeseosCarrito()" aria-expanded="false">
-      <span class="btn-toggle-deseos-carrito__texto">
-        <i class="fa-solid fa-heart"></i>
-        <span id="textoToggleDeseos">Mostrar lista de productos deseada</span>
-        <span class="deseos-chip-contador" id="carritoDeseosCount">0</span>
-      </span>
-      <i class="fa-solid fa-chevron-down flecha-deseos" id="flechaDeseosCarrito"></i>
-    </button>
-    <div class="carrito-deseos-contenedor" id="carritoDeseosContenedor">
-      <div class="carrito-deseos-lista" id="carritoDeseosLista">
-        <!-- Renderizado dinámico desde JS con los productos deseados -->
+    <div class="carrito-panel__items" id="carritoItems">
+      <!-- Los productos se insertan aquí dinámicamente con JS -->
+    </div>
+
+    <!-- SECCIÓN: LISTA DE PRODUCTOS DESEADA -->
+    <div class="carrito-deseos-seccion" id="carritoDeseosSeccion">
+      <button type="button" class="btn-toggle-deseos-carrito" id="btnToggleDeseosCarrito" onclick="toggleDeseosCarrito()" aria-expanded="false">
+        <span class="btn-toggle-deseos-carrito__texto">
+          <i class="fa-solid fa-heart"></i>
+          <span id="textoToggleDeseos">Mostrar lista de productos deseada</span>
+          <span class="deseos-chip-contador" id="carritoDeseosCount">0</span>
+        </span>
+        <i class="fa-solid fa-chevron-down flecha-deseos" id="flechaDeseosCarrito"></i>
+      </button>
+      <div class="carrito-deseos-contenedor" id="carritoDeseosContenedor">
+        <div class="carrito-deseos-lista" id="carritoDeseosLista">
+          <!-- Renderizado dinámico desde JS con los productos deseados -->
+        </div>
       </div>
+    </div>
+
+    <div class="carrito-panel__pie">
+      <div class="carrito-total">
+        <span>Total:</span>
+        <span id="carritoTotal">$0</span>
+      </div>
+      <button type="button" class="btn btn--primario btn--full" id="btnIrAPagar">
+        <i class="fa-solid fa-credit-card"></i> Ir a pagar
+      </button>
     </div>
   </div>
 
-  <div class="carrito-panel__resumen">
-    <div class="carrito-total">
-      <span>Total:</span>
-      <span id="carritoTotal">$0</span>
+  <!-- ========== VISTA 2: DATOS DE PAGO ========== -->
+  <div class="carrito-vista" id="carritoVistaPago" hidden>
+    <div class="carrito-panel__header">
+      <button type="button" class="carrito-volver" id="btnVolverAlCarrito" aria-label="Volver al carrito">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <h3><i class="fa-solid fa-lock"></i> Finalizar compra</h3>
+      <button id="cerrarCarritoPago" aria-label="Cerrar carrito">&times;</button>
+    </div>
+
+    <div class="carrito-resumen-pago" id="carritoResumenPago">
+      <!-- Resumen corto de lo que se va a pagar -->
     </div>
 
     <form id="formCheckout" class="checkout-form" autocomplete="off">
@@ -166,7 +188,13 @@
       <label for="chkTelefono">Teléfono de contacto *</label>
       <input type="tel" id="chkTelefono" name="telefono" placeholder="Ej. 300 123 4567" autocomplete="off" required>
 
-      <label for="chkDireccion">Dirección exacta de entrega / instalación *</label>
+      <label for="chkDireccion">
+        Dirección exacta de entrega / instalación *
+        <a href="#" class="checkout-enlace-direccion" id="btnGestionarDirecciones" title="Administrar mis direcciones">
+          <i class="fa-solid fa-location-dot"></i> Mis direcciones
+        </a>
+      </label>
+      <select id="chkDireccionGuardada" class="checkout-direccion-select" hidden></select>
       <div class="checkout-gps-row">
         <input type="text" id="chkDireccion" name="direccion" placeholder="Calle, carrera, barrio, ciudad..." autocomplete="street-address" required>
         <button type="button" class="btn-gps" id="btnBuscarMapaCheckout" title="Ubicar dirección en el mapa">
@@ -197,6 +225,11 @@
 
       <div id="checkoutPagoGuia" class="checkout-pago-info" style="display:none;"></div>
       <input type="text" id="chkDetallePago" name="detallePago" placeholder="Referencia de transferencia, billete o nota de pago (opcional)" style="display:none;">
+
+      <div class="carrito-total carrito-total--pago">
+        <span>Total a pagar:</span>
+        <span id="carritoTotalPago">$0</span>
+      </div>
 
       <button type="submit" class="btn btn--primario btn--full">
         <i class="fa-solid fa-lock"></i> Confirmar pedido

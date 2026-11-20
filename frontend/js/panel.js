@@ -86,14 +86,16 @@ async function aplicarPermisosEmpleado() {
 
     document.querySelectorAll('[data-modulo]').forEach((el) => {
       const mod = el.dataset.modulo;
-      if (mod && !permitidos.has(mod)) {
+      if (mod && !permitidos.has(mod) && !['perfil', 'direccion'].includes(mod)) {
         el.style.display = 'none';
       }
     });
 
     const archivo = (window.location.pathname.split('/').pop() || 'index.html').replace('.html', '');
     const moduloActual = archivo === 'index' ? 'dashboard' : archivo;
-    if (moduloActual && !permitidos.has(moduloActual) && !['dashboard', 'tareas', 'perfil'].includes(moduloActual)) {
+    // Direccion y perfil son datos personales: siempre accesibles.
+    const siemprePermitidos = ['dashboard', 'tareas', 'perfil', 'direccion', 'direcciones'];
+    if (moduloActual && !permitidos.has(moduloActual) && !siemprePermitidos.includes(moduloActual)) {
       window.location.href = 'index.html';
     }
   } catch {

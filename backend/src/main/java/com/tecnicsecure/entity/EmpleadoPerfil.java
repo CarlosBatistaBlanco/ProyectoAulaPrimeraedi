@@ -26,7 +26,7 @@ public class EmpleadoPerfil {
     private String area = "OPERATIVO";
 
     @Column(name = "modulos_permitidos", nullable = false, length = 300)
-    private String modulosPermitidos = "dashboard,tareas,perfil,ventas,pedidos,inventario,productos,soporte,chat";
+    private String modulosPermitidos = "dashboard,tareas,perfil,direccion,ventas,pedidos,inventario,productos,soporte,chat";
 
     @Column(name = "actualizado_en")
     private LocalDateTime actualizadoEn = LocalDateTime.now();

@@ -10,6 +10,7 @@ import com.tecnicsecure.entity.Rol;
 import com.tecnicsecure.entity.Usuario;
 import com.tecnicsecure.exception.ApiException;
 import com.tecnicsecure.repository.ClienteRepository;
+import com.tecnicsecure.repository.DireccionUsuarioRepository;
 import com.tecnicsecure.repository.EmpleadoPerfilRepository;
 import com.tecnicsecure.repository.EmpleadoRepository;
 import com.tecnicsecure.repository.FavoritoRepository;
@@ -47,6 +48,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PedidoRepository pedidoRepository;
     private final FavoritoRepository favoritoRepository;
     private final NotificacionRepository notificacionRepository;
+    private final DireccionUsuarioRepository direccionUsuarioRepository;
     private final TokenRecuperacionRepository tokenRecuperacionRepository;
     private final EmpleadoPerfilRepository empleadoPerfilRepository;
     private final TareaEmpleadoRepository tareaEmpleadoRepository;
@@ -61,6 +63,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                               PedidoRepository pedidoRepository,
                               FavoritoRepository favoritoRepository,
                               NotificacionRepository notificacionRepository,
+                              DireccionUsuarioRepository direccionUsuarioRepository,
                               TokenRecuperacionRepository tokenRecuperacionRepository,
                               EmpleadoPerfilRepository empleadoPerfilRepository,
                               TareaEmpleadoRepository tareaEmpleadoRepository,
@@ -74,6 +77,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.pedidoRepository = pedidoRepository;
         this.favoritoRepository = favoritoRepository;
         this.notificacionRepository = notificacionRepository;
+        this.direccionUsuarioRepository = direccionUsuarioRepository;
         this.tokenRecuperacionRepository = tokenRecuperacionRepository;
         this.empleadoPerfilRepository = empleadoPerfilRepository;
         this.tareaEmpleadoRepository = tareaEmpleadoRepository;
@@ -212,6 +216,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         tokenRecuperacionRepository.deleteByIdUsuario(idUsuario);
         empleadoPerfilRepository.deleteByIdUsuario(idUsuario);
         tareaEmpleadoRepository.deleteByIdEmpleadoUsuario(idUsuario);
+        direccionUsuarioRepository.deleteByIdUsuario(idUsuario);
 
         // 4) Si es cliente, sus pedidos dependen de la fila de cliente:
         //    se eliminan los pedidos (y sus lineas) antes del cliente.

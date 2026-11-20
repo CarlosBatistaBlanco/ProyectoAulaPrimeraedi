@@ -275,6 +275,15 @@ const Api = {
     return consulta ? `?${consulta}` : '';
   },
 
+  /* --------------------------- Direcciones ------------------------- */
+
+  misDirecciones: () => Api.get('/direcciones'),
+  direccionPrincipal: () => Api.get('/direcciones/principal'),
+  crearDireccion: (datos) => Api.post('/direcciones', datos),
+  actualizarDireccion: (id, datos) => Api.put(`/direcciones/${id}`, datos),
+  marcarDireccionPredeterminada: (id) => Api.patch(`/direcciones/${id}/predeterminada`, {}),
+  eliminarDireccion: (id) => Api.delete(`/direcciones/${id}`),
+
   /* ----------------------------- Cliente --------------------------- */
 
   favoritos: () => Api.get('/cliente/favoritos'),

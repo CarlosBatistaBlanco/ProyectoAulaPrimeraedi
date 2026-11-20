@@ -63,6 +63,69 @@ function agregarAlCarrito(producto) {
   renderizarCarrito();
 }
 
+/* ------------------- Animacion de "agregar al carrito" ------------------- */
+
+/** Hace saltar el icono del carrito del encabezado y dibuja una onda. */
+function animarIconoCarrito() {
+  const boton = document.getElementById('btnAbrirCarrito');
+  if (!boton) return;
+
+  boton.classList.remove('sacudida');
+  // Forzar reflow para poder repetir la animacion sin recargar la pagina.
+  void boton.offsetWidth;
+  boton.classList.add('sacudida');
+  setTimeout(() => boton.classList.remove('sacudida'), 700);
+
+  const caja = boton.getBoundingClientRect();
+  const onda = document.createElement('span');
+  onda.className = 'carrito-onda';
+  onda.style.left = `${caja.left + caja.width / 2}px`;
+  onda.style.top = `${caja.top + caja.height / 2}px`;
+  document.body.appendChild(onda);
+  setTimeout(() => onda.remove(), 700);
+}
+
+/** Aviso flotante que desaparece solo. */
+function mostrarToastCarrito(texto) {
+  const anterior = document.querySelector('.toast-carrito');
+  if (anterior) anterior.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-carrito';
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${escaparHtml(texto)}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2600);
+}
+
+/**
+ * Anima el boton que se pulso y su tarjeta, y avisa al icono del carrito.
+ * Se usa tanto en las tarjetas del catalogo como en la lista de deseos.
+ */
+function animarAgregado(boton, etiqueta) {
+  if (boton && !boton.disabled) {
+    const textoOriginal = boton.innerHTML;
+    if (boton.dataset.animando === '1') return;
+    boton.dataset.animando = '1';
+    boton.classList.add('agregando');
+    boton.innerHTML = '<i class="fa-solid fa-check"></i> ¡Agregado!';
+
+    const tarjeta = boton.closest('.tarjeta-producto');
+    if (tarjeta) {
+      tarjeta.classList.add('recien-agregado');
+      setTimeout(() => tarjeta.classList.remove('recien-agregado'), 700);
+    }
+
+    setTimeout(() => {
+      boton.innerHTML = textoOriginal;
+      boton.classList.remove('agregando');
+      delete boton.dataset.animando;
+    }, 1100);
+  }
+  animarIconoCarrito();
+  mostrarToastCarrito(`${etiqueta || 'Producto'} agregado al carrito`);
+}
+
 function cambiarCantidad(idProducto, delta) {
   const carrito = leerCarrito().map((item) => {
     if (Number(item.id_producto) === Number(idProducto)) {
@@ -85,14 +148,26 @@ function quitarDelCarrito(idProducto) {
 function renderizarCarrito() {
   const contenedor = document.getElementById('carritoItems');
   const totalEl = document.getElementById('carritoTotal');
-  if (!contenedor || !totalEl) return;
+  const totalPagoEl = document.getElementById('carritoTotalPago');
+  const resumenPago = document.getElementById('carritoResumenPago');
+  const btnPagar = document.getElementById('btnIrAPagar');
+  if (!contenedor) return;
 
   const carrito = leerCarrito();
   if (carrito.length === 0) {
-    contenedor.innerHTML = '<p style="color:#8ea3bd; text-align:center; margin-top:20px;">Tu carrito está vacío.</p>';
-    totalEl.textContent = formatearPrecio(0);
+    contenedor.innerHTML = `
+      <div class="carrito-vacio">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <p>Tu carrito está vacío.</p>
+        <small>Agrega productos desde el catálogo para continuar.</small>
+      </div>`;
+    if (totalEl) totalEl.textContent = formatearPrecio(0);
+    if (totalPagoEl) totalPagoEl.textContent = formatearPrecio(0);
+    if (resumenPago) resumenPago.innerHTML = '';
+    if (btnPagar) btnPagar.disabled = true;
     return;
   }
+  if (btnPagar) btnPagar.disabled = false;
 
   let total = 0;
   contenedor.innerHTML = carrito.map((item) => {
@@ -105,10 +180,11 @@ function renderizarCarrito() {
           <h4>${escaparHtml(item.nombre)}</h4>
           <span class="item-carrito__precio">${formatearPrecio(subtotal)}</span>
           <div class="item-carrito__controles">
-            <button type="button" onclick="cambiarCantidad(${Number(item.id_producto)}, -1)">-</button>
+            <button type="button" onclick="cambiarCantidad(${Number(item.id_producto)}, -1)" aria-label="Quitar una unidad">−</button>
             <span>${item.cantidad}</span>
-            <button type="button" onclick="cambiarCantidad(${Number(item.id_producto)}, 1)">+</button>
+            <button type="button" onclick="cambiarCantidad(${Number(item.id_producto)}, 1)" aria-label="Agregar una unidad">+</button>
           </div>
+          <br>
           <button type="button" class="item-carrito__quitar" onclick="quitarDelCarrito(${Number(item.id_producto)})">
             <i class="fa-solid fa-trash"></i> Quitar
           </button>
@@ -116,7 +192,103 @@ function renderizarCarrito() {
       </div>`;
   }).join('');
 
-  totalEl.textContent = formatearPrecio(total);
+  const totalTexto = formatearPrecio(total);
+  if (totalEl) totalEl.textContent = totalTexto;
+  if (totalPagoEl) totalPagoEl.textContent = totalTexto;
+
+  // Resumen corto que se ve al entrar a la vista de pago.
+  if (resumenPago) {
+    const unidades = carrito.reduce((n, i) => n + i.cantidad, 0);
+    resumenPago.innerHTML = `
+      <span class="carrito-resumen-pago__titulo">
+        <i class="fa-solid fa-box-open"></i> ${carrito.length} producto(s) · ${unidades} unidad(es)
+      </span>
+      ${carrito.map((i) => `
+        <div class="carrito-resumen-pago__fila">
+          <span>${escaparHtml(i.nombre)} × ${i.cantidad}</span>
+          <strong>${formatearPrecio(i.precio * i.cantidad)}</strong>
+        </div>`).join('')}`;
+  }
+}
+
+/* ------------------- Cambio entre lista de carrito y pago ------------------- */
+
+function irAPagar() {
+  if (leerCarrito().length === 0) {
+    mostrarToastCarrito('Agrega al menos un producto');
+    return;
+  }
+  const lista = document.getElementById('carritoVistaLista');
+  const pago = document.getElementById('carritoVistaPago');
+  if (!lista || !pago) return;
+
+  lista.hidden = true;
+  pago.hidden = false;
+  rellenarDatosCheckout();
+  pago.querySelector('.checkout-form input, .checkout-form select')?.focus();
+}
+
+function volverAlCarrito() {
+  const lista = document.getElementById('carritoVistaLista');
+  const pago = document.getElementById('carritoVistaPago');
+  if (!lista || !pago) return;
+  pago.hidden = true;
+  lista.hidden = false;
+}
+
+/** Precarga los datos del usuario y su direccion predeterminada. */
+function rellenarDatosCheckout() {
+  const form = document.getElementById('formCheckout');
+  if (!form) return;
+
+  const usuario = (typeof Api !== 'undefined' && Api.getUsuario) ? Api.getUsuario() : null;
+  const campos = form.elements;
+
+  if (usuario) {
+    if (campos.nombre && !campos.nombre.value.trim()) campos.nombre.value = usuario.nombre || '';
+    if (campos.correo && !campos.correo.value.trim()) campos.correo.value = usuario.correo || '';
+    if (campos.telefono && !campos.telefono.value.trim()) campos.telefono.value = usuario.telefono || '';
+  }
+
+  if (!usuario || typeof Api === 'undefined') return;
+
+  // Direcciones guardadas del usuario (menu Direccion).
+  Api.misDirecciones()
+    .then((direcciones) => {
+      const lista = Array.isArray(direcciones) ? direcciones : (direcciones?.contenido || []);
+      const selector = document.getElementById('chkDireccionGuardada');
+      const inputDir = document.getElementById('chkDireccion');
+      const inputLat = document.getElementById('chkLatitud');
+      const inputLon = document.getElementById('chkLongitud');
+
+      if (!selector || !inputDir || !lista.length) return;
+
+      selector.innerHTML = lista.map((d) => `
+        <option value="${d.idDireccion}" ${d.predeterminada ? 'selected' : ''}>
+          ${escaparHtml(d.etiqueta)} — ${escaparHtml(d.direccion)}
+        </option>`).join('');
+      selector.hidden = false;
+
+      const aplicar = () => {
+        const elegida = lista.find((d) => String(d.idDireccion) === String(selector.value))
+          || lista.find((d) => d.predeterminada) || lista[0];
+        if (!elegida) return;
+        inputDir.value = elegida.direccion || '';
+        if (inputLat) inputLat.value = elegida.latitud != null ? String(elegida.latitud) : '';
+        if (inputLon) inputLon.value = elegida.longitud != null ? String(elegida.longitud) : '';
+        // La direccion puede traer telefono y nombre de quien recibe: si el
+        // perfil no los tiene, se completan para no bloquear el pedido.
+        const tel = document.getElementById('chkTelefono');
+        if (tel && !tel.value.trim() && elegida.telefono) tel.value = elegida.telefono;
+        const nom = document.getElementById('chkNombre');
+        if (nom && !nom.value.trim() && elegida.nombreRecibe) nom.value = elegida.nombreRecibe;
+        actualizarVistaMapaCheckout(elegida.direccion, elegida.latitud, elegida.longitud);
+      };
+
+      aplicar();
+      selector.addEventListener('change', aplicar);
+    })
+    .catch(() => { /* sin direcciones guardadas: se escribe a mano */ });
 }
 
 /* -------------------- Mapa Google Maps y pago en checkout -------------------- */
@@ -232,22 +404,22 @@ document.addEventListener('DOMContentLoaded', () => {
   renderizarCarrito();
   inicializarMapaYPagoCheckout();
 
-  document.querySelectorAll('.btn-agregar').forEach((boton) => {
-    if (boton.dataset.activo) return;
-    boton.dataset.activo = 'true';
-    boton.addEventListener('click', () => {
+  // Delegacion de eventos: las tarjetas del catalogo se crean despues de
+  // cargar la API, asi que no se pueden enganchar una por una al arrancar.
+  if (!document.body.dataset.carritoDelegado) {
+    document.body.dataset.carritoDelegado = '1';
+    document.addEventListener('click', (e) => {
+      const boton = e.target.closest('.btn-agregar');
+      if (!boton || boton.disabled) return;
       agregarAlCarrito({
         id_producto: parseInt(boton.dataset.id, 10),
         nombre: boton.dataset.nombre,
         precio: parseFloat(boton.dataset.precio),
         imagen: boton.dataset.imagen
       });
-      const textoOriginal = boton.innerHTML;
-      boton.innerHTML = '<i class="fa-solid fa-check"></i> Agregado';
-      setTimeout(() => { boton.innerHTML = textoOriginal; }, 1200);
-      abrirCarrito();
+      animarAgregado(boton, boton.dataset.nombre);
     });
-  });
+  }
 
   const btnAbrir = document.getElementById('btnAbrirCarrito');
   const btnCerrar = document.getElementById('cerrarCarrito');
@@ -263,6 +435,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (btnCerrar) btnCerrar.addEventListener('click', cerrarCarrito);
   if (overlay) overlay.addEventListener('click', cerrarCarrito);
+
+  document.getElementById('cerrarCarritoPago')?.addEventListener('click', cerrarCarrito);
+  document.getElementById('btnIrAPagar')?.addEventListener('click', irAPagar);
+  document.getElementById('btnVolverAlCarrito')?.addEventListener('click', volverAlCarrito);
+  document.getElementById('btnGestionarDirecciones')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const base = (typeof RUTA_BASE !== 'undefined' ? RUTA_BASE : window.RUTA_BASE) || '';
+    const panel = (typeof Api !== 'undefined' && Api.getUsuario && Api.getUsuario())
+      ? Api.getUsuario().rol
+      : 'cliente';
+    const destino = ['administrador', 'empleado', 'cliente'].includes(panel) ? panel : 'cliente';
+    window.location.href = `${base}panel/${destino}/direcciones.html`;
+  });
 
   const formCheckout = document.getElementById('formCheckout');
   const respuestaPedido = document.getElementById('respuestaPedido');
@@ -354,6 +539,7 @@ document.addEventListener('sesion:cerrada', () => {
 });
 
 function abrirCarrito() {
+  volverAlCarrito();
   document.getElementById('carritoPanel')?.classList.add('activo');
   document.getElementById('carritoOverlay')?.classList.add('activo');
   if (typeof actualizarDeseosEnCarrito === 'function') {
@@ -372,3 +558,8 @@ window.quitarDelCarrito = quitarDelCarrito;
 window.actualizarContador = actualizarContador;
 window.abrirCarrito = abrirCarrito;
 window.cerrarCarrito = cerrarCarrito;
+window.animarAgregado = animarAgregado;
+window.animarIconoCarrito = animarIconoCarrito;
+window.mostrarToastCarrito = mostrarToastCarrito;
+window.irAPagar = irAPagar;
+window.volverAlCarrito = volverAlCarrito;

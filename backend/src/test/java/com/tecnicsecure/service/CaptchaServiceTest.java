@@ -79,10 +79,15 @@ class CaptchaServiceTest {
     @Test
     @DisplayName("La ficha no revela el resultado en claro")
     void fichaNoExponeLaRespuesta() {
-        var desafio = servicio.generar();
-        int suma = sumaDe(desafio.pregunta());
-        assertThat(desafio.ficha()).doesNotContain(String.valueOf(suma));
-        assertThat(desafio.pregunta()).contains("+");
+        // Se comprueba sobre varias fichas: una sola podria coincidir por azar
+        // (el Base64 puede contener un digito suelto sin significado).
+        for (int i = 0; i < 15; i++) {
+            var desafio = servicio.generar();
+            int suma = sumaDe(desafio.pregunta());
+            // La respuesta va codificada dentro del Base64, nunca en texto plano.
+            assertThat(desafio.ficha()).doesNotContain("." + suma + ".");
+            assertThat(desafio.pregunta()).contains("+").doesNotContain("=");
+        }
     }
 
     @Test
