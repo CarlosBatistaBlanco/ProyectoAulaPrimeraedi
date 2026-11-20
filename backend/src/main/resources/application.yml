@@ -71,6 +71,10 @@ tecnisecure:
   security:
     max-intentos-fallidos: 5
     bloqueo-minutos: 15
+  captcha:
+    # Clave para firmar la verificacion del login. CAMBIALA en produccion.
+    # Si se deja vacia se genera una clave aleatoria en cada arranque.
+    secreto: ${CAPTCHA_SECRET:}
   uploads:
     dir: ${UPLOADS_DIR:../frontend/uploads}
   cors:

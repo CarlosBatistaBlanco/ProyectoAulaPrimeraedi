@@ -27,15 +27,22 @@ function parametroUrl(nombre) {
 
 /* ------------------------------ Login ------------------------------ */
 
+/** Ficha firmada de la verificacion actual (la devuelve el servidor). */
+let captchaFicha = '';
+
 async function cargarCaptcha() {
   const contenedor = document.getElementById('preguntaCaptcha');
+  const campo = document.getElementById('captcha');
   if (!contenedor) return;
   try {
     const datos = await Api.get('/auth/captcha');
     contenedor.textContent = datos.pregunta;
+    captchaFicha = datos.token || '';
   } catch {
-    contenedor.textContent = '¿cuánto es 3 + 4?';
+    contenedor.textContent = 'No se pudo cargar la verificación. Recarga la página.';
+    captchaFicha = '';
   }
+  if (campo) campo.value = '';
 }
 
 function inicializarLogin() {
@@ -61,6 +68,24 @@ function inicializarLogin() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const respuestaCaptcha = form.elements.captcha ? form.elements.captcha.value.trim() : '';
+    if (!respuestaCaptcha) {
+      mostrarAlerta(alerta, 'Escribe el resultado de la verificación.');
+      form.elements.captcha?.focus();
+      return;
+    }
+    if (!/^\d+$/.test(respuestaCaptcha)) {
+      mostrarAlerta(alerta, 'La verificación debe ser un número.');
+      form.elements.captcha?.focus();
+      return;
+    }
+    if (!captchaFicha) {
+      mostrarAlerta(alerta, 'La verificación no se cargó. Recarga la página.');
+      await cargarCaptcha();
+      return;
+    }
+
     const boton = form.querySelector('button[type="submit"]');
     const textoOriginal = boton.innerHTML;
     boton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
@@ -69,7 +94,9 @@ function inicializarLogin() {
     try {
       const respuesta = await Api.post('/auth/login', {
         correo: form.elements.correo.value.trim(),
-        password: form.elements.password.value
+        password: form.elements.password.value,
+        captcha: respuestaCaptcha,
+        captchaToken: captchaFicha
       });
 
       Api.guardarSesion(respuesta);
@@ -80,7 +107,9 @@ function inicializarLogin() {
       window.location.href = destino;
     } catch (error) {
       mostrarAlerta(alerta, error.message);
-      cargarCaptcha();
+      // La ficha se consume en cada intento: siempre se pide una nueva.
+      await cargarCaptcha();
+      form.elements.captcha?.focus();
       boton.innerHTML = textoOriginal;
       boton.disabled = false;
     }

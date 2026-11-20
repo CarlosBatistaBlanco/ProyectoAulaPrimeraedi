@@ -4,6 +4,7 @@ import com.tecnicsecure.dto.ApiResponse;
 import com.tecnicsecure.dto.auth.*;
 import com.tecnicsecure.entity.Usuario;
 import com.tecnicsecure.service.AuthService;
+import com.tecnicsecure.service.CaptchaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +21,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final CaptchaService captchaService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CaptchaService captchaService) {
         this.authService = authService;
+        this.captchaService = captchaService;
     }
 
     @Operation(summary = "Iniciar sesion y obtener tokens JWT")
@@ -50,7 +53,10 @@ public class AuthController {
     @Operation(summary = "Generar la pregunta del captcha")
     @GetMapping("/captcha")
     public Map<String, String> captcha() {
-        return Map.of("pregunta", authService.generarPreguntaCaptcha());
+        CaptchaService.Desafio desafio = captchaService.generar();
+        return Map.of(
+                "pregunta", desafio.pregunta(),
+                "token", desafio.ficha());
     }
 
     @Operation(summary = "Solicitar enlace de recuperacion de contrasena")

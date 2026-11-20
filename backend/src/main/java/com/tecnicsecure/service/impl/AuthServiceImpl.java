@@ -15,6 +15,7 @@ import com.tecnicsecure.repository.TokenRecuperacionRepository;
 import com.tecnicsecure.repository.UsuarioRepository;
 import com.tecnicsecure.security.JwtService;
 import com.tecnicsecure.service.AuthService;
+import com.tecnicsecure.service.CaptchaService;
 import com.tecnicsecure.util.UsuarioActual;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final TecniSecureProperties propiedades;
     private final UsuarioActual usuarioActual;
+    private final CaptchaService captchaService;
 
     public AuthServiceImpl(UsuarioRepository usuarioRepository,
                            RolRepository rolRepository,
@@ -52,7 +54,8 @@ public class AuthServiceImpl implements AuthService {
                            PasswordEncoder passwordEncoder,
                            JwtService jwtService,
                            TecniSecureProperties propiedades,
-                           UsuarioActual usuarioActual) {
+                           UsuarioActual usuarioActual,
+                           CaptchaService captchaService) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.clienteRepository = clienteRepository;
@@ -62,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
         this.jwtService = jwtService;
         this.propiedades = propiedades;
         this.usuarioActual = usuarioActual;
+        this.captchaService = captchaService;
     }
 
     /**
@@ -72,6 +76,12 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public TokenResponse login(LoginRequest request, String ip) {
+        // La verificacion se comprueba primero: si esta mal no se consulta la
+        // base ni se descuentan intentos, y no se revela si el correo existe.
+        if (!captchaService.validar(request.captchaToken(), request.captcha())) {
+            throw ApiException.badRequest("La verificación no es correcta. Escribe el resultado de la suma.");
+        }
+
         Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
                 .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException(MENSAJE_GENERICO));
 
@@ -255,26 +265,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String generarPreguntaCaptcha() {
-        ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        int a = rnd.nextInt(2, 10);
-        int b = rnd.nextInt(2, 10);
-        HttpServletRequest peticion = peticionActual();
-        if (peticion != null) {
-            peticion.getSession(true).setAttribute(CAPTCHA_SESION, a + b);
-        }
-        return "¿Cuánto es " + a + " + " + b + "?";
+        return captchaService.generar().pregunta();
     }
 
     @Override
     public boolean validarCaptcha(String respuesta) {
-        HttpServletRequest peticion = peticionActual();
-        boolean valido = peticion == null
-                || String.valueOf(peticion.getSession(true).getAttribute(CAPTCHA_SESION))
-                        .equals(respuesta == null ? "" : respuesta.trim());
-        if (peticion != null) {
-            peticion.getSession(true).removeAttribute(CAPTCHA_SESION);
-        }
-        return valido;
+        return false;
     }
 
     @Override
