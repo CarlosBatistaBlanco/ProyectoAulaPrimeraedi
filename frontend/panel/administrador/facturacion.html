@@ -82,6 +82,7 @@
 <div class="panel-box">
   <h2 class="panel-box__titulo"><i class="fa-solid fa-file-invoice"></i> Facturación electrónica y comprobantes</h2>
   <p style="color:var(--texto-tenue); margin-bottom:14px;">Visualiza, imprime o envía comprobantes fiscales sin exponer costos internos. Para anulación o ajuste contable se emite Nota Crédito auditada.</p>
+  <div class="correo-estado" id="correoEstadoFactura" hidden></div>
   <div class="panel-tabla-wrap">
     <table class="panel-tabla">
       <thead><tr><th>Factura / Pedido</th><th>Cliente</th><th>Fecha y hora</th><th>Estado</th><th>Total</th><th>Acciones</th></tr></thead>
@@ -96,10 +97,20 @@
     <div class="panel-form__acciones no-imprimir" style="margin-top:16px; flex-wrap:wrap;">
       <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalFactura')">Cerrar</button>
       <button type="button" class="btn btn--secundario" id="btnDescargarFactura"><i class="fa-solid fa-file-arrow-down"></i> Descargar</button>
-      <button type="button" class="btn btn--secundario" id="btnEnviarFactura"><i class="fa-solid fa-paper-plane"></i> Enviar correo</button>
-      <button type="button" class="btn btn--secundario" id="btnPagarFactura"><i class="fa-solid fa-credit-card"></i> Registrar pago</button>
-      <button type="button" class="btn btn--secundario" id="btnNotaCredito"><i class="fa-solid fa-file-circle-minus"></i> Nota crédito</button>
+      <button type="button" class="btn btn--secundario" id="btnEnviarFactura"><i class="fa-solid fa-paper-plane"></i> Enviar al cliente</button>
+      <button type="button" class="btn btn--secundario" id="btnEnviarFacturaOtro"><i class="fa-solid fa-at"></i> Enviar a otro correo</button>
+      <button type="button" class="btn btn--secundario" id="btnPagarFactura" data-solo-admin><i class="fa-solid fa-credit-card"></i> Registrar pago</button>
+      <button type="button" class="btn btn--secundario" id="btnNotaCredito" data-solo-admin><i class="fa-solid fa-file-circle-minus"></i> Nota crédito</button>
       <button type="button" class="btn btn--primario" onclick="imprimirFacturaActual()"><i class="fa-solid fa-print"></i> Imprimir</button>
+    </div>
+    <div class="factura-envio-otro no-imprimir" id="facturaEnvioOtro" hidden>
+      <label for="facturaCorreoDestino">Correo de destino</label>
+      <div class="factura-envio-otro__fila">
+        <input type="email" id="facturaCorreoDestino" placeholder="cliente@correo.com" autocomplete="off">
+        <button type="button" class="btn btn--primario" id="facturaEnvioOtroConfirmar"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+        <button type="button" class="btn btn--secundario" id="facturaEnvioOtroCancelar">Cancelar</button>
+      </div>
+      <p class="form-respuesta" id="facturaEnvioOtroRespuesta"></p>
     </div>
   </div>
 </div>

@@ -390,3 +390,66 @@ a.panel-stat-card:hover { transform: translateY(-2px); border-color: var(--cian)
   .panel-topbar__nombre { display: none; }
   .panel-reloj { font-size: 0.72rem; padding: 3px 8px; }
 }
+
+/* ---------------- Estado del envio de facturas por correo ---------------- */
+.correo-estado {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 0.86rem;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+.correo-estado--ok {
+  background: rgba(26, 122, 60, 0.1);
+  border: 1px solid rgba(26, 122, 60, 0.35);
+  color: #14612f;
+}
+.correo-estado--aviso {
+  background: rgba(200, 56, 16, 0.08);
+  border: 1px solid rgba(200, 56, 16, 0.3);
+  color: #9a2c0c;
+}
+html[data-tema="oscuro"] .correo-estado--ok { color: #7ee2a0; }
+html[data-tema="oscuro"] .correo-estado--aviso { color: #ffb199; }
+.correo-estado i { flex-shrink: 0; }
+
+/* ---------------- Enviar factura a otro correo ---------------- */
+.factura-envio-otro {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--azul-acero);
+  border-radius: 10px;
+  background: rgba(var(--cian-rgb, 0, 107, 133), 0.05);
+}
+.factura-envio-otro label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--texto-tenue, #5a7086);
+  margin-bottom: 8px;
+}
+.factura-envio-otro__fila {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.factura-envio-otro__fila input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--azul-acero);
+  background: var(--azul-oscuro);
+  color: var(--texto);
+  font-family: var(--fuente-texto, inherit);
+  box-sizing: border-box;
+}
+.factura-envio-otro__fila input:focus { outline: none; border-color: var(--cian); }
+.factura-envio-otro #facturaEnvioOtroRespuesta { margin-top: 10px; }
+@media (max-width: 560px) {
+  .factura-envio-otro__fila .btn { flex: 1 1 auto; justify-content: center; }
+}

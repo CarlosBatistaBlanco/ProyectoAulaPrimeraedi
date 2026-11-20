@@ -116,6 +116,31 @@ public class FacturacionController {
                 .body(bytes);
     }
 
+    @Operation(summary = "Estado del servicio de correo (si esta listo para enviar)")
+    @GetMapping("/factura/correo-estado")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
+    public Map<String, Object> estadoCorreo() {
+        return emailService.estado();
+    }
+
+    @Operation(summary = "Enviar la factura al correo que se indique")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
+    @PostMapping("/{id}/enviar-factura-a")
+    public Map<String, String> enviarFacturaA(@PathVariable Integer id,
+                                             @jakarta.validation.Valid @RequestBody
+                                             com.tecnicsecure.dto.soporte.EnvioFacturaRequest peticion) {
+        FacturaDetalleResponse fac = obtenerFactura(id);
+        String htmlDoc = construirDocumentoHtmlFactura(fac);
+        byte[] adjunto = htmlDoc.getBytes(StandardCharsets.UTF_8);
+        return emailService.enviarCorreoConAdjunto(
+                peticion.correo(),
+                "Factura electronica " + fac.numeroFactura() + " - TECNISECURE",
+                htmlDoc,
+                fac.numeroFactura() + ".html",
+                adjunto,
+                fac.numeroFactura() + " | Pedido #" + id + " | Envio manual a " + peticion.correo());
+    }
+
     @Operation(summary = "Enviar unicamente esta factura individual por correo al cliente comprador")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
     @PostMapping("/{id}/enviar-factura")

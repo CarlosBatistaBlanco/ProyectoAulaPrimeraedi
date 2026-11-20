@@ -1589,9 +1589,9 @@ let pedidoFacturaActual = null;
 function mostrarResultadoEnvioFactura(r) {
   const estado = r?.estado || '';
   const msg = r?.mensaje || `Procesado para ${r?.destinatario || 'el cliente'}.`;
-  if (estado === 'ENVIADO_SMTP') {
+  if (estado === 'ENVIADO') {
     mostrarToast(msg, 'ok');
-  } else if (estado === 'ERROR_SMTP') {
+  } else if (estado === 'ERROR_ENVIO' || estado === 'SIN_DESTINATARIO') {
     mostrarToast(msg, 'error');
   } else {
     mostrarToast(msg, 'info');
@@ -1629,6 +1629,12 @@ function inicializarFacturacion() {
   const btnPagar = document.getElementById('btnPagarFactura');
   const btnNota = document.getElementById('btnNotaCredito');
 
+  // Pagar y emitir Nota Credito son operaciones contables del administrador.
+  const esAdmin = ((Api.getUsuario()?.rol) || '').toLowerCase() === 'administrador';
+  if (!esAdmin) {
+    document.querySelectorAll('[data-solo-admin]').forEach((el) => { el.style.display = 'none'; });
+  }
+
   if (btnEnviar) {
     btnEnviar.addEventListener('click', async () => {
       if (!pedidoFacturaActual) return;
@@ -1637,6 +1643,65 @@ function inicializarFacturacion() {
         mostrarResultadoEnvioFactura(r);
       } catch (e) {
         mostrarToast(e.message, 'error');
+      }
+    });
+  }
+
+  // Enviar la misma factura a otro correo (por si el cliente usa uno distinto).
+  const btnOtro = document.getElementById('btnEnviarFacturaOtro');
+  const cajaOtro = document.getElementById('facturaEnvioOtro');
+  const inputOtro = document.getElementById('facturaCorreoDestino');
+  const btnConfirmar = document.getElementById('facturaEnvioOtroConfirmar');
+  const btnCancelarOtro = document.getElementById('facturaEnvioOtroCancelar');
+  const respuestaOtro = document.getElementById('facturaEnvioOtroRespuesta');
+
+  if (btnOtro && cajaOtro) {
+    btnOtro.addEventListener('click', () => {
+      cajaOtro.hidden = !cajaOtro.hidden;
+      if (!cajaOtro.hidden) {
+        if (respuestaOtro) respuestaOtro.textContent = '';
+        inputOtro?.focus();
+      }
+    });
+  }
+  if (btnCancelarOtro) {
+    btnCancelarOtro.addEventListener('click', () => {
+      if (cajaOtro) cajaOtro.hidden = true;
+      if (respuestaOtro) respuestaOtro.textContent = '';
+    });
+  }
+  if (btnConfirmar) {
+    btnConfirmar.addEventListener('click', async () => {
+      const correo = (inputOtro?.value || '').trim();
+      if (!correo || !/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(correo)) {
+        if (respuestaOtro) {
+          respuestaOtro.textContent = 'Escribe un correo válido, por ejemplo cliente@gmail.com';
+          respuestaOtro.className = 'form-respuesta error';
+        }
+        inputOtro?.focus();
+        return;
+      }
+      const texto = btnConfirmar.innerHTML;
+      btnConfirmar.disabled = true;
+      btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…';
+      try {
+        const r = await Api.enviarFacturaA(pedidoFacturaActual, correo);
+        if (respuestaOtro) {
+          respuestaOtro.textContent = r?.mensaje || 'Procesado.';
+          respuestaOtro.className = 'form-respuesta ' + (r?.estado === 'ENVIADO' ? 'ok' : 'error');
+        }
+        mostrarResultadoEnvioFactura(r);
+        if (r?.estado === 'ENVIADO') {
+          setTimeout(() => { if (cajaOtro) cajaOtro.hidden = true; }, 2500);
+        }
+      } catch (e) {
+        if (respuestaOtro) {
+          respuestaOtro.textContent = e.message;
+          respuestaOtro.className = 'form-respuesta error';
+        }
+      } finally {
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = texto;
       }
     });
   }
@@ -1666,6 +1731,29 @@ function inicializarFacturacion() {
   }
 
   cargarFacturacion();
+  mostrarEstadoCorreo();
+}
+
+/** Indica si el equipo puede enviar correos reales (sin exponer credenciales). */
+async function mostrarEstadoCorreo() {
+  const caja = document.getElementById('correoEstadoFactura');
+  if (!caja) return;
+  try {
+    const estado = await Api.estadoCorreoFactura();
+    caja.hidden = false;
+    if (estado.configurado) {
+      caja.className = 'correo-estado correo-estado--ok';
+      caja.innerHTML = `<i class="fa-solid fa-circle-check"></i>
+        <span>El envío de facturas por correo está <strong>activo</strong>
+        (${escaparHtml(estado.remitente || 'servidor configurado')}).</span>`;
+    } else {
+      caja.className = 'correo-estado correo-estado--aviso';
+      caja.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>
+        <span>El envío de correos aún no está configurado. Puedes descargar o imprimir las facturas.</span>`;
+    }
+  } catch {
+    caja.hidden = true;
+  }
 }
 
 async function cargarFacturacion() {

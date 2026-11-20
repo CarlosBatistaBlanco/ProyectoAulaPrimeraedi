@@ -240,8 +240,38 @@ Variables de entorno (todas opcionales):
 | `JWT_EXPIRATION_MINUTES` | `120` | Duración del access token |
 | `ADMIN_CORREO` | `admin@tecnicsecure.com` | Correo del administrador |
 | `ADMIN_PASSWORD` | `Admin123!` | Contraseña del administrador |
+| `MAIL_ENABLED` | `false` | Activa el envío real de correos |
+| `MAIL_USERNAME` | *(vacío)* | Cuenta desde la que se envían las facturas |
+| `MAIL_PASSWORD` | *(vacío)* | Contraseña de aplicación (no la del correo) |
+| `MAIL_FROM` | *(= MAIL_USERNAME)* | Remitente que ve el cliente |
+| `DEEPSEEK_API_KEY` | *(vacío)* | Clave de la IA del asistente virtual |
+| `CAPTCHA_SECRET` | *(aleatoria)* | Clave para firmar la verificación del login |
 
 > **En producción cambia siempre `JWT_SECRET` y `ADMIN_PASSWORD`.**
+
+### Enviar facturas por correo
+
+Las facturas se envían realmente al correo del cliente desde el panel de
+**Facturación** (administrador y empleado). Para activarlo:
+
+1. Usa una cuenta de Gmail con **verificación en 2 pasos**.
+2. Genera una **Contraseña de aplicación** en
+   <https://myaccount.google.com/apppasswords> (16 caracteres).
+3. Escríbela en `.env`:
+   ```ini
+   MAIL_ENABLED=true
+   MAIL_USERNAME=tucuenta@gmail.com
+   MAIL_PASSWORD=xxxxxxxxxxxxxxxx
+   MAIL_FROM=tucuenta@gmail.com
+   ```
+4. Reinicia: `docker compose up -d --force-recreate`
+
+La página de facturación muestra un aviso verde cuando el envío está activo.
+Si no hay credenciales, el comprobante se puede descargar o imprimir y el
+aviso indica que el correo aún no está configurado (sin tecnicismos).
+
+Desde el modal de la factura puedes enviarla **al cliente** o **a otro correo**
+con el botón "Enviar a otro correo".
 
 ### Cambiar a MySQL (opcional)
 

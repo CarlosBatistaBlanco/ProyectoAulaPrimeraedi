@@ -19,9 +19,11 @@ import java.util.Map;
 
 /**
  * Servicio centralizado de envio real de correos y documentos adjuntos.
- * Cuando SMTP esta configurado (MAIL_ENABLED=true y credenciales spring.mail.username/password),
- * envia el correo real con adjunto usando JavaMailSender; de lo contrario informa claramente
- * el estado local y deja rastro auditado sin exponer datos de terceros.
+ *
+ * Cuando hay credenciales SMTP (MAIL_USERNAME + MAIL_PASSWORD) envia el correo
+ * real con adjunto usando JavaMailSender. Si no hay credenciales, el documento
+ * queda auditado y se informa al usuario en lenguaje sencillo (sin exponer
+ * nombres de variables de entorno).
  */
 @Service
 public class EmailService {
@@ -44,6 +46,9 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String smtpUsername;
 
+    @Value("${spring.mail.password:}")
+    private String smtpPassword;
+
     public EmailService(LogActividadRepository logRepository, UsuarioActual usuarioActual) {
         this.logRepository = logRepository;
         this.usuarioActual = usuarioActual;
@@ -52,6 +57,21 @@ public class EmailService {
     @Autowired(required = false)
     public void setMailSender(JavaMailSender mailSender) {
         this.mailSender = mailSender;
+    }
+
+    /** Indica si el servidor esta listo para enviar correos reales. */
+    public boolean estaConfigurado() {
+        return habilitado && mailSender != null
+                && StringUtils.hasText(smtpUsername) && StringUtils.hasText(smtpPassword);
+    }
+
+    /** Estado del servicio para mostrarlo en el panel (sin exponer credenciales). */
+    public Map<String, Object> estado() {
+        return Map.of(
+                "configurado", estaConfigurado(),
+                "servidor", host,
+                "remitente", tieneTexto(smtpUsername) ? smtpUsername : remitente
+        );
     }
 
     public Map<String, String> enviarCorreo(String destinatario, String asunto, String resumenContenido) {
@@ -66,49 +86,60 @@ public class EmailService {
                                                       String nombreAdjunto,
                                                       byte[] bytesAdjunto,
                                                       String resumenAuditoria) {
-        boolean smtpListo = habilitado && mailSender != null && StringUtils.hasText(smtpUsername);
-        String estado = "SIMULADO_SIN_SMTP";
-        String mensajeEstado = "Documento preparado localmente para " + destinatario
-                + " (activa MAIL_ENABLED=true, MAIL_USERNAME y MAIL_PASSWORD para despacho SMTP real).";
+        String destino = destinatario == null ? "" : destinatario.trim();
+        String estado;
+        String mensajeEstado;
 
-        if (smtpListo) {
+        if (!StringUtils.hasText(destino) || !destino.contains("@")) {
+            estado = "SIN_DESTINATARIO";
+            mensajeEstado = "Este comprobante no tiene un correo válido registrado, no se pudo enviar.";
+        } else if (!estaConfigurado()) {
+            // Sin credenciales: el documento queda registrado pero no sale.
+            estado = "CORREO_NO_CONFIGURADO";
+            mensajeEstado = "El envío de correos no está configurado en este equipo. "
+                    + "El comprobante quedó registrado y puedes descargarlo o imprimirlo.";
+            log.info("[EMAIL:SIN_CONFIGURAR] Para={} | Asunto={}", destino, asunto);
+        } else {
             try {
                 MimeMessage mime = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mime, true, StandardCharsets.UTF_8.name());
                 String from = StringUtils.hasText(remitente) ? remitente : smtpUsername;
-                helper.setFrom(from);
-                helper.setTo(destinatario);
+                helper.setFrom(from, "TECNISECURE");
+                helper.setTo(destino);
                 helper.setSubject(asunto);
                 helper.setText(cuerpoHtml != null ? cuerpoHtml : "", true);
                 if (StringUtils.hasText(nombreAdjunto) && bytesAdjunto != null && bytesAdjunto.length > 0) {
-                    helper.addAttachment(nombreAdjunto, new ByteArrayResource(bytesAdjunto));
+                    helper.addAttachment(nombreAdjunto, new ByteArrayResource(bytesAdjunto), "text/html");
                 }
                 mailSender.send(mime);
-                estado = "ENVIADO_SMTP";
-                mensajeEstado = "Correo y documento adjunto enviados realmente a " + destinatario + ".";
-                log.info("[EMAIL:SMTP_REAL] Para={} | Asunto={} | Adjunto={}", destinatario, asunto, nombreAdjunto);
+                estado = "ENVIADO";
+                mensajeEstado = "Correo enviado a " + destino + " con el comprobante adjunto.";
+                log.info("[EMAIL:ENVIADO] Para={} | Asunto={} | Adjunto={}", destino, asunto, nombreAdjunto);
             } catch (Exception ex) {
-                estado = "ERROR_SMTP";
-                mensajeEstado = "No se pudo enviar por SMTP a " + destinatario + ": " + ex.getMessage();
-                log.error("[EMAIL:ERROR_SMTP] Para={} | Error={}", destinatario, ex.getMessage());
+                estado = "ERROR_ENVIO";
+                mensajeEstado = "No se pudo entregar el correo a " + destino + ". "
+                        + "Revisa la dirección o intenta más tarde.";
+                log.error("[EMAIL:ERROR] Para={} | Error={}", destino, ex.getMessage());
             }
-        } else {
-            log.info("[EMAIL:LOCAL_AUDITADO] Para={} | Asunto={} | Remitente={}", destinatario, asunto, remitente);
         }
 
         LogActividad registro = new LogActividad();
         registro.setIdUsuario(usuarioActual.idOpcional());
         registro.setAccion("envio_correo");
-        registro.setDetalle("Para: " + destinatario + " | Asunto: " + asunto + " | Estado: " + estado
+        registro.setDetalle("Para: " + destino + " | Asunto: " + asunto + " | Estado: " + estado
                 + (StringUtils.hasText(resumenAuditoria) ? " | " + resumenAuditoria : ""));
         logRepository.save(registro);
 
         return Map.of(
                 "estado", estado,
                 "mensaje", mensajeEstado,
-                "destinatario", destinatario,
+                "destinatario", destino,
                 "asunto", asunto,
                 "servidor", host
         );
+    }
+
+    private boolean tieneTexto(String valor) {
+        return valor != null && !valor.isBlank();
     }
 }
