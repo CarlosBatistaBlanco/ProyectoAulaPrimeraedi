@@ -48,7 +48,24 @@ function actualizarContador() {
   if (contador) contador.textContent = totalItems;
 }
 
-function agregarAlCarrito(producto) {
+/**
+ * Agrega una unidad del producto al carrito.
+ *
+ * `origen` identifica quien hace la llamada. Si el mismo clic llega por dos
+ * caminos (por ejemplo un listener directo en el boton y la delegacion del
+ * documento) se descarta la segunda llamada dentro de la misma ventana de
+ * tiempo, para que un clic nunca sume dos unidades.
+ */
+let ultimoAgregado = { clave: '', momento: 0 };
+
+function agregarAlCarrito(producto, origen) {
+  const ahora = Date.now();
+  const clave = `${origen || 'directo'}:${producto.id_producto}`;
+  if (clave === ultimoAgregado.clave && ahora - ultimoAgregado.momento < 300) {
+    return;
+  }
+  ultimoAgregado = { clave, momento: ahora };
+
   const carrito = leerCarrito();
   const existente = carrito.find((item) => Number(item.id_producto) === Number(producto.id_producto));
 
@@ -416,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nombre: boton.dataset.nombre,
         precio: parseFloat(boton.dataset.precio),
         imagen: boton.dataset.imagen
-      });
+      }, 'tarjeta');
       animarAgregado(boton, boton.dataset.nombre);
     });
   }

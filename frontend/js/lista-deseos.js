@@ -148,7 +148,7 @@ function renderizarListaDeseos() {
         precio: Number(boton.dataset.precio),
         imagen: boton.dataset.imagen
       };
-      if (typeof agregarAlCarrito === 'function') agregarAlCarrito(producto);
+      if (typeof agregarAlCarrito === 'function') agregarAlCarrito(producto, 'deseos');
     });
   });
 }
@@ -192,22 +192,10 @@ function marcarFavoritosGuardados() {
   });
 }
 
-/** Activa los botones de las tarjetas generadas dinámicamente. */
+/** Activa los botones de las tarjetas generadas dinámicamente.
+ *  Nota: el boton "Agregar" lo maneja carrito.js por delegacion de eventos,
+ *  por eso aqui NO se engancha (antes se agregaba dos veces al carrito). */
 function inicializarBotonesTarjetas() {
-  document.querySelectorAll('.btn-agregar').forEach((boton) => {
-    if (boton.dataset.activo) return;
-    boton.dataset.activo = 'true';
-    boton.addEventListener('click', () => {
-      if (typeof agregarAlCarrito !== 'function') return;
-      agregarAlCarrito({
-        id_producto: Number(boton.dataset.id),
-        nombre: boton.dataset.nombre,
-        precio: Number(boton.dataset.precio),
-        imagen: boton.dataset.imagen
-      });
-    });
-  });
-
   document.querySelectorAll('.btn-favorito').forEach((boton) => {
     if (boton.dataset.activo) return;
     boton.dataset.activo = 'true';
