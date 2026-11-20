@@ -153,12 +153,26 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoRepository.save(pedido);
         registrarHistorial(idPedido, anterior, destino, idUsuario);
 
+        // Si se cancela el pedido, reintegrar automáticamente las unidades al inventario
+        if (EstadoPedido.CANCELADO.equals(destino) && !EstadoPedido.CANCELADO.equals(anterior)
+                && pedido.getDetalles() != null) {
+            for (PedidoDetalle d : pedido.getDetalles()) {
+                if (d.getProducto() != null && d.getProducto().getIdProducto() != null) {
+                    inventarioService.reintegrarPorCancelacion(
+                            d.getProducto().getIdProducto(),
+                            d.getCantidad(),
+                            "Reingreso por cancelacion pedido #" + idPedido,
+                            idUsuario);
+                }
+            }
+        }
+
         if (pedido.getCliente() != null && pedido.getCliente().getUsuario() != null) {
             String detalle = StringUtils.hasText(observacion) ? " " + observacion : "";
             soporteService.notificar(pedido.getCliente().getUsuario().getIdUsuario(),
                     "Tu pedido #" + idPedido + " cambió de estado",
                     "Ahora está: " + destino + "." + detalle,
-                    "/panel/cliente/pedidos");
+                    "/panel/cliente/pedidos.html");
         }
 
         return PedidoResponse.de(pedido);
@@ -167,7 +181,8 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     @Transactional(readOnly = true)
     public List<PedidoHistorial> historial(Integer idPedido) {
-        buscar(idPedido);
+        Pedido pedido = buscar(idPedido);
+        verificarPropietario(pedido);
         return historialRepository.findByIdPedidoOrderByCreadoEnAsc(idPedido);
     }
 
@@ -233,7 +248,7 @@ public class PedidoServiceImpl implements PedidoService {
             soporteService.notificar(pedido.getCliente().getUsuario().getIdUsuario(),
                     "Pedido #" + pedido.getIdPedido() + " recibido",
                     "Estamos preparando tu pedido.",
-                    "/panel/cliente/pedidos");
+                    "/panel/cliente/pedidos.html");
         }
     }
 }

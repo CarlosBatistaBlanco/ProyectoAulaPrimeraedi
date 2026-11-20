@@ -120,6 +120,13 @@ public class AuthServiceImpl implements AuthService {
         }
         Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(jwtService.extraerUsuario(refreshToken))
                 .orElseThrow(() -> ApiException.unauthorized("Usuario no encontrado"));
+        if (!Boolean.TRUE.equals(usuario.getActivo())) {
+            throw ApiException.unauthorized("Tu cuenta está inactiva");
+        }
+        if (Boolean.TRUE.equals(usuario.getBloqueado())
+                && (usuario.getBloqueadoHasta() == null || usuario.getBloqueadoHasta().isAfter(LocalDateTime.now()))) {
+            throw ApiException.unauthorized("Tu cuenta está bloqueada temporalmente");
+        }
         return emitir(usuario);
     }
 

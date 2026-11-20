@@ -81,6 +81,7 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
     private final UsuarioRepository usuarioRepository;
     private final EmpleadoPerfilRepository perfilRepository;
     private final TareaEmpleadoRepository tareaRepository;
+    private final TareaHistorialEntregaRepository historialRepository;
     private final LogActividadRepository logRepository;
     private final PedidoRepository pedidoRepository;
     private final ClienteRepository clienteRepository;
@@ -90,6 +91,7 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
     public EmpleadoGestionServiceImpl(UsuarioRepository usuarioRepository,
                                       EmpleadoPerfilRepository perfilRepository,
                                       TareaEmpleadoRepository tareaRepository,
+                                      TareaHistorialEntregaRepository historialRepository,
                                       LogActividadRepository logRepository,
                                       PedidoRepository pedidoRepository,
                                       ClienteRepository clienteRepository,
@@ -98,6 +100,7 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.tareaRepository = tareaRepository;
+        this.historialRepository = historialRepository;
         this.logRepository = logRepository;
         this.pedidoRepository = pedidoRepository;
         this.clienteRepository = clienteRepository;
@@ -269,6 +272,7 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
             m.put("observacionAdmin", t.getObservacionAdmin());
             m.put("creadoEn", t.getCreadoEn());
             m.put("completadaEn", t.getCompletadaEn());
+            m.put("totalEntregas", historialRepository.countByIdTarea(t.getIdTarea()));
             return m;
         }).toList();
     }
@@ -278,6 +282,19 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
     public List<TareaEmpleado> misTareas() {
         Usuario u = usuarioActual.requerir();
         return tareaRepository.findByIdEmpleadoUsuarioOrderByCreadoEnDesc(u.getIdUsuario());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TareaHistorialEntrega> historialTarea(Integer idTarea) {
+        Usuario actor = usuarioActual.requerir();
+        TareaEmpleado tarea = tareaRepository.findById(idTarea)
+                .orElseThrow(() -> ApiException.notFound("Tarea no encontrada"));
+
+        if (!usuarioActual.esAdministrador() && !actor.getIdUsuario().equals(tarea.getIdEmpleadoUsuario())) {
+            throw ApiException.forbidden("Solo puedes consultar el historial de tus propias tareas");
+        }
+        return historialRepository.findByIdTareaOrderByNumeroIntentoDesc(idTarea);
     }
 
     @Override
@@ -319,6 +336,20 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
             throw ApiException.forbidden("Solo puedes actualizar tus propias tareas asignadas");
         }
 
+        // Regla de bloqueo: una vez el empleado marca la tarea como completada, no puede modificarla
+        // ni volverla a "en_progreso" hasta que el administrador la revise o la devuelva para corrección.
+        String estadoActual = tarea.getEstado() == null ? "pendiente" : tarea.getEstado().trim().toLowerCase(Locale.ROOT);
+        if (!usuarioActual.esAdministrador()) {
+            if ("completada".equals(estadoActual)) {
+                throw ApiException.badRequest(
+                        "Esta tarea ya fue marcada como completada y está en espera de revisión del administrador.");
+            }
+            if ("revisada".equals(estadoActual)) {
+                throw ApiException.badRequest(
+                        "Esta tarea ya fue aprobada y cerrada por el administrador.");
+            }
+        }
+
         String nuevoEstado = StringUtils.hasText(estado) ? estado.trim().toLowerCase(Locale.ROOT) : "en_progreso";
         if (!List.of("pendiente", "en_progreso", "completada").contains(nuevoEstado)) {
             throw ApiException.badRequest("Estado de avance no valido");
@@ -326,21 +357,36 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
         tarea.setEstado(nuevoEstado);
         if (StringUtils.hasText(evidencia)) tarea.setEvidencia(evidencia.trim());
         if (StringUtils.hasText(comentarioEmpleado)) tarea.setComentarioEmpleado(comentarioEmpleado.trim());
-        if ("completada".equals(nuevoEstado) && tarea.getCompletadaEn() == null) {
-            tarea.setCompletadaEn(LocalDateTime.now());
+
+        int numeroIntento = 0;
+        if ("completada".equals(nuevoEstado)) {
+            LocalDateTime ahora = LocalDateTime.now();
+            tarea.setCompletadaEn(ahora);
+
+            numeroIntento = (int) historialRepository.countByIdTarea(idTarea) + 1;
+            TareaHistorialEntrega entrega = new TareaHistorialEntrega();
+            entrega.setIdTarea(idTarea);
+            entrega.setNumeroIntento(numeroIntento);
+            entrega.setEvidencia(tarea.getEvidencia());
+            entrega.setComentarioEmpleado(tarea.getComentarioEmpleado());
+            entrega.setEstadoRevision("en_revision");
+            entrega.setEnviadoEn(ahora);
+            historialRepository.save(entrega);
         }
         tareaRepository.save(tarea);
 
         if ("completada".equals(nuevoEstado)) {
+            final int intentoFinal = numeroIntento;
             usuarioRepository.findByRolNombre(Rol.ADMINISTRADOR).forEach(adm ->
                     soporteService.notificar(adm.getIdUsuario(),
                             "Tarea lista para revisar: " + tarea.getTitulo(),
-                            actor.getNombre() + " reportó entrega"
+                            actor.getNombre() + " reportó entrega #" + intentoFinal
                                     + (StringUtils.hasText(tarea.getEvidencia()) ? " con evidencia adjunta." : "."),
                             "/panel/administrador/tareas.html"));
         }
 
-        registrarLog("progreso_tarea", "Tarea #" + idTarea + " -> " + nuevoEstado);
+        registrarLog("progreso_tarea", "Tarea #" + idTarea + " -> " + nuevoEstado
+                + (numeroIntento > 0 ? " (Entrega #" + numeroIntento + ")" : ""));
         return tarea;
     }
 
@@ -374,7 +420,47 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
             tarea.setCalificacion(calificacion != null && calificacion >= 1 && calificacion <= 5 ? calificacion : null);
         }
 
-        tarea.setObservacionAdmin(StringUtils.hasText(observacionAdmin) ? observacionAdmin.trim() : null);
+        String obsLimpia = StringUtils.hasText(observacionAdmin) ? observacionAdmin.trim() : null;
+        tarea.setObservacionAdmin(obsLimpia);
+
+        // Archivar / actualizar el registro de la entrega actual en el historial antes de reabrir la tarea
+        LocalDateTime ahora = LocalDateTime.now();
+        String estadoHistorial = "revisada".equals(estadoDestino) ? "aprobada" : "devuelta";
+        Optional<TareaHistorialEntrega> ultimaOpt = historialRepository.findFirstByIdTareaOrderByNumeroIntentoDesc(idTarea);
+
+        if (ultimaOpt.isPresent() && "en_revision".equals(ultimaOpt.get().getEstadoRevision())) {
+            TareaHistorialEntrega entrega = ultimaOpt.get();
+            entrega.setEstadoRevision(estadoHistorial);
+            entrega.setCalificacion(tarea.getCalificacion());
+            entrega.setObservacionAdmin(obsLimpia);
+            entrega.setRevisadoEn(ahora);
+            entrega.setIdRevisorUsuario(usuarioActual.idOpcional());
+            historialRepository.save(entrega);
+        } else if (StringUtils.hasText(tarea.getEvidencia()) || StringUtils.hasText(tarea.getComentarioEmpleado())) {
+            // Respaldo retroactivo si la tarea fue entregada antes de existir el historial
+            int intento = (int) historialRepository.countByIdTarea(idTarea) + 1;
+            TareaHistorialEntrega entrega = new TareaHistorialEntrega();
+            entrega.setIdTarea(idTarea);
+            entrega.setNumeroIntento(intento);
+            entrega.setEvidencia(tarea.getEvidencia());
+            entrega.setComentarioEmpleado(tarea.getComentarioEmpleado());
+            entrega.setEstadoRevision(estadoHistorial);
+            entrega.setCalificacion(tarea.getCalificacion());
+            entrega.setObservacionAdmin(obsLimpia);
+            entrega.setEnviadoEn(tarea.getCompletadaEn() != null ? tarea.getCompletadaEn() : ahora);
+            entrega.setRevisadoEn(ahora);
+            entrega.setIdRevisorUsuario(usuarioActual.idOpcional());
+            historialRepository.save(entrega);
+        }
+
+        // Si el administrador devuelve para corrección, se habilita una nueva entrega limpia
+        // conservando la entrega anterior archivada en tareas_historial_entregas.
+        if ("en_progreso".equals(estadoDestino)) {
+            tarea.setEvidencia(null);
+            tarea.setComentarioEmpleado(null);
+            tarea.setCompletadaEn(null);
+        }
+
         tarea.setEstado(estadoDestino);
         tareaRepository.save(tarea);
 
@@ -383,7 +469,7 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
                 : "Tarea devuelta para corrección";
         soporteService.notificar(tarea.getIdEmpleadoUsuario(),
                 tituloNoti,
-                tarea.getTitulo() + (StringUtils.hasText(observacionAdmin) ? " · Obs: " + observacionAdmin.trim() : ""),
+                tarea.getTitulo() + (obsLimpia != null ? " · Obs: " + obsLimpia : ""),
                 "/panel/empleado/tareas.html");
 
         registrarLog("revisar_tarea", "Tarea #" + idTarea + " estado=" + estadoDestino

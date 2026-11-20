@@ -2068,7 +2068,7 @@ async function inicializarTareasAdmin() {
               <td><strong>${escaparHtml(t.titulo)}</strong>${t.descripcion ? `<br><small style="color:var(--texto-tenue);">${escaparHtml(t.descripcion)}</small>` : ''}</td>
               <td><span class="badge-estado ${badgePrio}">${escaparHtml(prio)}</span></td>
               <td>${t.fechaLimite ? escaparHtml(t.fechaLimite) : '—'}</td>
-              <td><span class="badge-rol">${escaparHtml(t.estado)}</span></td>
+              <td><span class="badge-rol">${escaparHtml(t.estado)}</span>${t.totalEntregas > 0 ? `<br><small style="color:var(--texto-tenue);">${t.totalEntregas} entrega(s)</small>` : ''}</td>
               <td>${construirHtmlEvidencia(t.evidencia)}</td>
               <td>${t.calificacion ? `<strong>${t.calificacion}/5</strong>` : 'Pendiente'}</td>
               <td>
@@ -2178,6 +2178,51 @@ async function inicializarTareasAdmin() {
   await cargarTodo();
 }
 
+function renderizarHistorialEntregas(entregas) {
+  if (!Array.isArray(entregas) || !entregas.length) {
+    return '<p style="color:var(--texto-tenue); font-size:.84rem; margin:0;">Sin entregas anteriores archivadas en el historial.</p>';
+  }
+  return `
+    <h4 style="margin:0 0 8px 0; font-size:.9rem;"><i class="fa-solid fa-clock-rotate-left"></i> Historial de entregas archivadas (${entregas.length})</h4>
+    <div style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:4px;">
+      ${entregas.map((e) => {
+        const est = (e.estadoRevision || 'en_revision').toLowerCase();
+        const etiquetaEst = est === 'aprobada'
+          ? 'Aprobada'
+          : (est === 'devuelta' ? 'Devuelta para corrección' : 'En revisión');
+        const claseEst = est === 'aprobada'
+          ? 'badge-estado--activo'
+          : (est === 'devuelta' ? 'badge-estado--bloqueado' : 'badge-estado--inactivo');
+        return `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--azul-acero); border-radius:8px; padding:8px 10px; font-size:.83rem; line-height:1.45;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
+              <strong>Entrega #${e.numeroIntento}</strong>
+              <span class="badge-estado ${claseEst}">${etiquetaEst}${e.calificacion ? ` · ${e.calificacion}/5` : ''}</span>
+            </div>
+            <div style="color:var(--texto-tenue); font-size:.78rem;">
+              Enviada: ${e.enviadoEn ? escaparHtml(fechaHora(e.enviadoEn)) : '—'}
+              ${e.revisadoEn ? ` · Revisada: ${escaparHtml(fechaHora(e.revisadoEn))}` : ''}
+            </div>
+            <div style="margin-top:4px;"><strong>Evidencia:</strong> ${construirHtmlEvidencia(e.evidencia)}</div>
+            ${e.comentarioEmpleado ? `<div style="margin-top:3px;"><strong>Comentario empleado:</strong> ${escaparHtml(e.comentarioEmpleado)}</div>` : ''}
+            ${e.observacionAdmin ? `<div style="margin-top:3px; color:var(--cian);"><strong>Observación admin:</strong> ${escaparHtml(e.observacionAdmin)}</div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function cargarHistorialEnContenedor(idTarea, idContenedor) {
+  const cont = document.getElementById(idContenedor);
+  if (!cont) return;
+  cont.innerHTML = '<p style="color:var(--texto-tenue); font-size:.84rem; margin:0;">Cargando historial de entregas…</p>';
+  try {
+    const entregas = await Api.historialTarea(idTarea);
+    cont.innerHTML = renderizarHistorialEntregas(entregas);
+  } catch (error) {
+    cont.innerHTML = `<p style="color:var(--texto-tenue); font-size:.84rem; margin:0;">No se pudo cargar el historial: ${escaparHtml(error.message)}</p>`;
+  }
+}
+
 function abrirCalificarTarea(idTarea) {
   const form = document.getElementById('formCalificarTarea');
   const tarea = cacheTareasAdmin.find((t) => t.idTarea === idTarea);
@@ -2194,8 +2239,8 @@ function abrirCalificarTarea(idTarea) {
     detalle.innerHTML = `
       <div><strong>Empleado:</strong> ${escaparHtml(tarea.empleadoNombre || '—')} · <strong>Estado actual:</strong> <span class="badge-rol">${escaparHtml(tarea.estado)}</span></div>
       ${tarea.descripcion ? `<div style="margin-top:6px;"><strong>Instrucciones:</strong> ${escaparHtml(tarea.descripcion)}</div>` : ''}
-      <div style="margin-top:6px;"><strong>Comentario del empleado:</strong> ${escaparHtml(tarea.comentarioEmpleado || 'Sin comentarios registrados')}</div>
-      <div style="margin-top:6px;"><strong>Evidencia adjunta:</strong> ${construirHtmlEvidencia(ev)}</div>
+      <div style="margin-top:6px;"><strong>Comentario actual del empleado:</strong> ${escaparHtml(tarea.comentarioEmpleado || 'Sin comentarios registrados')}</div>
+      <div style="margin-top:6px;"><strong>Evidencia actual adjunta:</strong> ${construirHtmlEvidencia(ev)}</div>
       ${esImagen && ev.startsWith('/uploads/') ? `<div style="margin-top:8px;"><img src="${escaparHtml(ev)}" alt="Evidencia" style="max-width:100%; max-height:180px; border-radius:6px; border:1px solid var(--azul-acero);"></div>` : ''}
     `;
   }
@@ -2205,6 +2250,7 @@ function abrirCalificarTarea(idTarea) {
   const resp = document.getElementById('respuestaCalificarModal');
   if (resp) { resp.textContent = ''; resp.className = 'form-respuesta campo--full'; }
   abrirModal('modalCalificarTarea');
+  cargarHistorialEnContenedor(tarea.idTarea, 'historialEntregasAdmin');
 }
 
 async function inicializarMisTareas() {
@@ -2224,20 +2270,34 @@ async function inicializarMisTareas() {
         tablaVacia(tbody, 7, 'No tienes tareas asignadas por el momento.');
         return;
       }
-      tbody.innerHTML = cacheMisTareas.map((t) => `
+      tbody.innerHTML = cacheMisTareas.map((t) => {
+        const est = (t.estado || 'pendiente').toLowerCase();
+        const bloqueada = est === 'completada' || est === 'revisada';
+        const textoEstado = est === 'completada'
+          ? 'Completada (en revisión)'
+          : (est === 'revisada' ? 'Revisada (aprobada)' : est);
+        const claseEstado = est === 'revisada'
+          ? 'badge-estado--activo'
+          : (est === 'completada' ? 'badge-estado--inactivo' : 'badge-estado--activo');
+        const iconoAccion = bloqueada ? 'fa-eye' : 'fa-pen-to-square';
+        const tituloAccion = est === 'completada'
+          ? 'Ver entrega e historial (bloqueada en espera de revisión)'
+          : (est === 'revisada' ? 'Ver tarea aprobada e historial' : 'Reportar avance y subir archivo');
+        return `
         <tr>
           <td>#${t.idTarea}</td>
           <td><strong>${escaparHtml(t.titulo)}</strong>${t.descripcion ? `<br><small style="color:var(--texto-tenue);">${escaparHtml(t.descripcion)}</small>` : ''}</td>
           <td><span class="badge-rol">${escaparHtml(t.prioridad || 'media')}</span></td>
           <td>${t.fechaLimite ? escaparHtml(t.fechaLimite) : '—'}</td>
-          <td><span class="badge-estado badge-estado--activo">${escaparHtml(t.estado)}</span></td>
+          <td><span class="badge-estado ${claseEstado}">${escaparHtml(textoEstado)}</span></td>
           <td>${t.calificacion ? `<strong>${t.calificacion}/5</strong>` : 'Sin calificar'}</td>
           <td>
-            <button type="button" class="panel-accion-btn" title="Reportar avance y subir archivo" onclick="abrirProgresoTarea(${t.idTarea})">
-              <i class="fa-solid fa-pen-to-square"></i>
+            <button type="button" class="panel-accion-btn" title="${tituloAccion}" onclick="abrirProgresoTarea(${t.idTarea})">
+              <i class="fa-solid ${iconoAccion}"></i>
             </button>
           </td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
     } catch (error) {
       tablaVacia(tbody, 7, error.message);
     }
@@ -2249,6 +2309,7 @@ async function inicializarMisTareas() {
 
   if (inputArchivo && form) {
     inputArchivo.addEventListener('change', async () => {
+      if (form.dataset.bloqueada === 'true') return;
       const file = inputArchivo.files && inputArchivo.files[0];
       if (!file) return;
       const btnSubmit = form.querySelector('button[type="submit"]');
@@ -2263,7 +2324,7 @@ async function inicializarMisTareas() {
         if (estadoSubida) estadoSubida.innerHTML = `<span style="color:var(--naranja);">${escaparHtml(error.message)}</span>`;
         mostrarToast(error.message, 'error');
       } finally {
-        if (btnSubmit) btnSubmit.disabled = false;
+        if (btnSubmit && form.dataset.bloqueada !== 'true') btnSubmit.disabled = false;
       }
     });
   }
@@ -2271,6 +2332,10 @@ async function inicializarMisTareas() {
   if (form) {
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
+      if (form.dataset.bloqueada === 'true') {
+        mostrarToast('Esta tarea está bloqueada hasta que el administrador la revise.', 'aviso');
+        return;
+      }
       const resp = document.getElementById('respuestaProgresoModal');
       try {
         await Api.progresoTarea(Number(form.idTarea.value), {
@@ -2279,7 +2344,12 @@ async function inicializarMisTareas() {
           comentarioEmpleado: form.comentarioEmpleado.value.trim() || null
         });
         cerrarModal('modalProgresoTarea');
-        mostrarToast('Avance reportado correctamente.', 'ok');
+        mostrarToast(
+          form.estado.value === 'completada'
+            ? 'Entrega enviada y archivada. Queda en espera de revisión del administrador.'
+            : 'Avance reportado correctamente.',
+          'ok'
+        );
         await cargarMis();
       } catch (error) {
         if (resp) { resp.textContent = error.message; resp.className = 'form-respuesta error campo--full'; }
@@ -2294,21 +2364,54 @@ function abrirProgresoTarea(idTarea) {
   const form = document.getElementById('formProgresoTarea');
   const tarea = cacheMisTareas.find((t) => t.idTarea === idTarea);
   if (!form || !tarea) return;
+
+  const est = (tarea.estado || 'pendiente').toLowerCase();
+  const bloqueada = est === 'completada' || est === 'revisada';
+  form.dataset.bloqueada = bloqueada ? 'true' : 'false';
+
   form.idTarea.value = tarea.idTarea;
-  form.estado.value = (tarea.estado === 'revisada') ? 'completada' : (tarea.estado || 'en_progreso');
+  form.estado.value = (est === 'revisada') ? 'completada' : (est || 'en_progreso');
   form.evidencia.value = tarea.evidencia || '';
   form.comentarioEmpleado.value = tarea.comentarioEmpleado || '';
 
   const inputArchivo = document.getElementById('archivoEvidenciaTarea');
   const estadoSubida = document.getElementById('estadoSubidaEvidencia');
+  const btnGuardar = document.getElementById('btnGuardarProgresoTarea') || form.querySelector('button[type="submit"]');
+  const avisoBloqueo = document.getElementById('avisoBloqueoTarea');
+
   if (inputArchivo) inputArchivo.value = '';
   if (estadoSubida) estadoSubida.innerHTML = tarea.evidencia ? `Actual: ${construirHtmlEvidencia(tarea.evidencia)}` : '';
+
+  // Bloqueo completo de controles cuando está completada (en espera de revisión) o revisada
+  form.estado.disabled = bloqueada;
+  form.evidencia.disabled = bloqueada;
+  form.comentarioEmpleado.disabled = bloqueada;
+  if (inputArchivo) inputArchivo.disabled = bloqueada;
+  if (btnGuardar) {
+    btnGuardar.disabled = bloqueada;
+    btnGuardar.style.display = bloqueada ? 'none' : '';
+  }
+
+  if (avisoBloqueo) {
+    if (est === 'completada') {
+      avisoBloqueo.style.display = 'block';
+      avisoBloqueo.innerHTML = '<i class="fa-solid fa-lock"></i> <strong>Tarea bloqueada en espera de revisión:</strong> Ya marcaste esta tarea como completada. No podrás modificarla ni subir nuevos archivos a menos que el administrador la devuelva para corrección.';
+    } else if (est === 'revisada') {
+      avisoBloqueo.style.display = 'block';
+      avisoBloqueo.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Tarea aprobada y cerrada:</strong> El administrador ya revisó y calificó esta entrega.';
+    } else {
+      avisoBloqueo.style.display = 'none';
+    }
+  }
 
   const feedback = document.getElementById('adminFeedbackBox');
   if (feedback) {
     if (tarea.observacionAdmin || tarea.calificacion) {
+      const prefijo = est === 'en_progreso'
+        ? '<i class="fa-solid fa-rotate-left"></i> <strong>Devuelta para corrección por el administrador:</strong> '
+        : '<strong>Revisión administrativa:</strong> ';
       feedback.style.display = 'block';
-      feedback.innerHTML = `<strong>Revisión administrativa:</strong> ${tarea.calificacion ? `Calificación ${tarea.calificacion}/5. ` : ''}${escaparHtml(tarea.observacionAdmin || '')}`;
+      feedback.innerHTML = `${prefijo}${tarea.calificacion ? `Calificación ${tarea.calificacion}/5. ` : ''}${escaparHtml(tarea.observacionAdmin || '')}`;
     } else {
       feedback.style.display = 'none';
     }
@@ -2319,6 +2422,7 @@ function abrirProgresoTarea(idTarea) {
   const resp = document.getElementById('respuestaProgresoModal');
   if (resp) { resp.textContent = ''; resp.className = 'form-respuesta campo--full'; }
   abrirModal('modalProgresoTarea');
+  cargarHistorialEnContenedor(tarea.idTarea, 'historialEntregasEmpleado');
 }
 
 /* ------------------------ Venta manual (empleado) ---------------------- */

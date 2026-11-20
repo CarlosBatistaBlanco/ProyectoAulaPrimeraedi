@@ -1,6 +1,7 @@
 package com.tecnicsecure.service;
 
 import com.tecnicsecure.entity.TareaEmpleado;
+import com.tecnicsecure.entity.TareaHistorialEntrega;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,8 @@ public interface EmpleadoGestionService {
     List<Map<String, Object>> listarTodasTareas();
 
     List<TareaEmpleado> misTareas();
+
+    List<TareaHistorialEntrega> historialTarea(Integer idTarea);
 
     TareaEmpleado asignarTarea(Integer idEmpleadoUsuario, String titulo, String descripcion, String prioridad, LocalDate fechaLimite);
 

@@ -12,7 +12,7 @@ spring:
   # proyecto (se pueden copiar o respaldar como cualquier archivo).
   # ---------------------------------------------------------------------
   datasource:
-    url: jdbc:h2:file:./data/tecnicsecure;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:file:./data/tecnicsecure;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;AUTO_SERVER=TRUE
     username: ${DB_USER:sa}
     password: ${DB_PASSWORD:}
     driver-class-name: org.h2.Driver
@@ -56,6 +56,9 @@ spring:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 8000
+          writetimeout: 8000
 
   # Sirve el frontend estatico desde el mismo puerto (sustituye a Apache).
   web:
@@ -94,7 +97,7 @@ tecnisecure:
     api-key: ${DEEPSEEK_API_KEY:}
     url: ${DEEPSEEK_URL:https://api.deepseek.com/chat/completions}
     modelo: ${DEEPSEEK_MODEL:deepseek-chat}
-    timeout-segundos: ${DEEPSEEK_TIMEOUT:25}
+    timeout-segundos: ${DEEPSEEK_TIMEOUT:12}
 
 springdoc:
   swagger-ui:

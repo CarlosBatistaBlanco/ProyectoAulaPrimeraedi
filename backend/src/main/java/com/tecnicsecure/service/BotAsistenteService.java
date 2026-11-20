@@ -144,22 +144,51 @@ public class BotAsistenteService {
                 pedidos.size(), ultimo.getIdPedido(), ultimo.getEstado(), moneda(ultimo.getTotal()));
     }
 
+    private static final java.util.Set<String> STOP_WORDS = java.util.Set.of(
+            "hola", "cuanto", "vale", "cuesta", "precio", "stock", "disponible",
+            "producto", "productos", "catalogo", "comprar", "tienen", "para", "como", "quiero"
+    );
+
     private String consultarProductos(String msg) {
         String msgNormalizado = normalizarTexto(msg);
         String[] palabras = msgNormalizado.split("[^a-z0-9]+");
-        List<Producto> encontrados = productoRepository.findAll().stream()
-                .filter(p -> Boolean.TRUE.equals(p.getActivo()))
-                .filter(p -> {
+        List<String> terminos = java.util.Arrays.stream(palabras)
+                .filter(p -> p.length() >= 4 && !STOP_WORDS.contains(p))
+                .distinct()
+                .limit(4)
+                .toList();
+
+        java.util.LinkedHashMap<Integer, Producto> mapa = new java.util.LinkedHashMap<>();
+        // 1. Búsqueda paginada directa en BD (evita cargar todo el catálogo con findAll())
+        for (String termino : terminos) {
+            var pagina = productoRepository.buscar(termino, null, null, PageRequest.of(0, 3));
+            if (pagina != null && pagina.hasContent()) {
+                for (Producto p : pagina.getContent()) {
+                    mapa.putIfAbsent(p.getIdProducto() != null ? p.getIdProducto() : System.identityHashCode(p), p);
+                    if (mapa.size() >= 3) break;
+                }
+            }
+            if (mapa.size() >= 3) break;
+        }
+
+        // 2. Respaldo acotado (máx. 50 activos) para coincidencias sin tildes ("camara" vs "Cámara")
+        if (mapa.isEmpty() && !terminos.isEmpty()) {
+            var muestra = productoRepository.buscar(null, null, null, PageRequest.of(0, 50));
+            if (muestra != null && muestra.hasContent()) {
+                for (Producto p : muestra.getContent()) {
                     String nom = p.getNombre() != null ? normalizarTexto(p.getNombre()) : "";
-                    for (String palabra : palabras) {
-                        if (palabra.length() >= 4 && nom.contains(palabra)) {
-                            return true;
+                    for (String termino : terminos) {
+                        if (nom.contains(termino)) {
+                            mapa.putIfAbsent(p.getIdProducto() != null ? p.getIdProducto() : System.identityHashCode(p), p);
+                            break;
                         }
                     }
-                    return false;
-                })
-                .limit(3)
-                .toList();
+                    if (mapa.size() >= 3) break;
+                }
+            }
+        }
+
+        List<Producto> encontrados = new java.util.ArrayList<>(mapa.values());
 
         if (encontrados.isEmpty()) {
             encontrados = productoRepository.findByDestacadoTrueAndActivoTrueOrderByIdProductoAsc()

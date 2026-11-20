@@ -9,6 +9,7 @@ import com.tecnicsecure.exception.ApiException;
 import com.tecnicsecure.repository.FacturaRepository;
 import com.tecnicsecure.repository.LogActividadRepository;
 import com.tecnicsecure.service.EmailService;
+import com.tecnicsecure.service.InventarioService;
 import com.tecnicsecure.service.PedidoService;
 import com.tecnicsecure.util.UsuarioActual;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,17 +44,20 @@ public class FacturacionController {
     private final LogActividadRepository logRepository;
     private final UsuarioActual usuarioActual;
     private final EmailService emailService;
+    private final InventarioService inventarioService;
 
     public FacturacionController(PedidoService pedidoService,
                                  FacturaRepository facturaRepository,
                                  LogActividadRepository logRepository,
                                  UsuarioActual usuarioActual,
-                                 EmailService emailService) {
+                                 EmailService emailService,
+                                 InventarioService inventarioService) {
         this.pedidoService = pedidoService;
         this.facturaRepository = facturaRepository;
         this.logRepository = logRepository;
         this.usuarioActual = usuarioActual;
         this.emailService = emailService;
+        this.inventarioService = inventarioService;
     }
 
     @Operation(summary = "Consultar factura formal de un pedido (solo datos necesarios del comprador)")
@@ -174,17 +178,24 @@ public class FacturacionController {
                 : (StringUtils.hasText(pedido.metodoPago()) ? pedido.metodoPago() : "Transferencia / Tarjeta");
         String referencia = "PAY-" + id + "-" + (System.currentTimeMillis() % 1000000);
 
-        Factura factura = facturaRepository.findByIdPedido(id).orElseGet(() -> {
-            Factura f = new Factura();
-            f.setIdPedido(id);
-            f.setNumeroFactura(String.format("FAC-%05d", id));
+        Factura factura = facturaRepository.findByIdPedido(id).orElse(null);
+        if (factura != null) {
+            if ("pagada".equalsIgnoreCase(factura.getEstado())) {
+                throw ApiException.conflict("Este pedido ya fue pagado anteriormente (Factura " + factura.getNumeroFactura() + ")");
+            }
+            if ("nota_credito".equalsIgnoreCase(factura.getEstado())) {
+                throw ApiException.badRequest("No se puede pagar una factura anulada con nota crédito");
+            }
+        } else {
+            factura = new Factura();
+            factura.setIdPedido(id);
+            factura.setNumeroFactura(String.format("FAC-%05d", id));
             BigDecimal total = pedido.total() != null ? pedido.total() : BigDecimal.ZERO;
             BigDecimal base = total.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
-            f.setSubtotal(base);
-            f.setImpuestos(total.subtract(base));
-            f.setTotal(total);
-            return f;
-        });
+            factura.setSubtotal(base);
+            factura.setImpuestos(total.subtract(base));
+            factura.setTotal(total);
+        }
         factura.setEstado("pagada");
         facturaRepository.save(factura);
 
@@ -214,15 +225,37 @@ public class FacturacionController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/nota-credito")
     @Transactional
-    public Map<String, String> emitirNotaCredito(@PathVariable Integer id, @RequestBody Map<String, String> body) {
+    public Map<String, String> emitirNotaCredito(@PathVariable Integer id,
+                                                 @RequestBody(required = false) Map<String, String> body) {
         String motivo = body != null && StringUtils.hasText(body.get("motivo"))
                 ? body.get("motivo").trim()
                 : "Ajuste administrativo solicitado por gerencia";
 
         Factura factura = facturaRepository.findByIdPedido(id)
                 .orElseThrow(() -> ApiException.notFound("No existe factura generada para este pedido"));
+        if ("nota_credito".equalsIgnoreCase(factura.getEstado())) {
+            throw ApiException.conflict("Esta factura ya tiene una nota crédito emitida");
+        }
         factura.setEstado("nota_credito");
         facturaRepository.save(factura);
+
+        // Reintegrar stock al inventario si el pedido no había sido cancelado previamente
+        PedidoResponse pedido = pedidoService.obtener(id);
+        if (!EstadoPedido.CANCELADO.equals(pedido.estado())) {
+            if (EstadoPedido.permiteTransicion(pedido.estado(), EstadoPedido.CANCELADO)) {
+                pedidoService.cambiarEstado(id, EstadoPedido.CANCELADO,
+                        "Cancelado por nota crédito " + factura.getNumeroFactura(),
+                        usuarioActual.idOpcional());
+            } else if (pedido.detalles() != null) {
+                for (var det : pedido.detalles()) {
+                    inventarioService.reintegrarPorCancelacion(
+                            det.idProducto(),
+                            det.cantidad(),
+                            "Reingreso por nota credito " + factura.getNumeroFactura(),
+                            usuarioActual.idOpcional());
+                }
+            }
+        }
 
         registrarLog("nota_credito_factura", "Factura " + factura.getNumeroFactura() + " | Motivo: " + motivo);
         return Map.of("estado", "nota_credito", "numeroFactura", factura.getNumeroFactura(), "motivo", motivo);

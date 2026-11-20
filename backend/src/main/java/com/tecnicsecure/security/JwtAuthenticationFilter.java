@@ -48,10 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String correo = jwtService.extraerUsuario(token);
                 UserDetails detalles = usuarioDetailsService.loadUserByUsername(correo);
 
-                var autenticacion = new UsernamePasswordAuthenticationToken(
-                        detalles, null, detalles.getAuthorities());
-                autenticacion.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(autenticacion);
+                if (detalles.isEnabled() && detalles.isAccountNonLocked()) {
+                    var autenticacion = new UsernamePasswordAuthenticationToken(
+                            detalles, null, detalles.getAuthorities());
+                    autenticacion.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(autenticacion);
+                }
             }
         } catch (RuntimeException ex) {
             // Token invalido o expirado: se continua sin autenticar y la seguridad responde 401.

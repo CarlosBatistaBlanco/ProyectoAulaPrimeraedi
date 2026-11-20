@@ -1,6 +1,7 @@
 package com.tecnicsecure.controller;
 
 import com.tecnicsecure.entity.TareaEmpleado;
+import com.tecnicsecure.entity.TareaHistorialEntrega;
 import com.tecnicsecure.service.EmpleadoGestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,11 +47,22 @@ public class EmpleadoGestionController {
     @Operation(summary = "Actualizar avance y evidencia de una tarea propia")
     @PreAuthorize("hasAnyRole('EMPLEADO','ADMINISTRADOR')")
     @PatchMapping("/tareas/{id}/progreso")
-    public TareaEmpleado actualizarProgreso(@PathVariable Integer id, @RequestBody Map<String, String> body) {
+    public TareaEmpleado actualizarProgreso(@PathVariable Integer id,
+                                            @RequestBody(required = false) Map<String, String> body) {
+        if (body == null) {
+            throw com.tecnicsecure.exception.ApiException.badRequest("Debes enviar los datos de avance de la tarea");
+        }
         return service.actualizarProgreso(id,
                 body.get("estado"),
                 body.get("evidencia"),
                 body.get("comentarioEmpleado"));
+    }
+
+    @Operation(summary = "Consultar historial archivado de entregas y revisiones de una tarea")
+    @PreAuthorize("hasAnyRole('EMPLEADO','ADMINISTRADOR')")
+    @GetMapping("/tareas/{id}/historial")
+    public List<TareaHistorialEntrega> historialTarea(@PathVariable Integer id) {
+        return service.historialTarea(id);
     }
 
     @Operation(summary = "Listar empleados con su area, permisos y carga laboral activa")
@@ -64,7 +76,11 @@ public class EmpleadoGestionController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @SuppressWarnings("unchecked")
     @PutMapping("/empleados/{idUsuario}/permisos")
-    public Map<String, Object> actualizarPermisos(@PathVariable Integer idUsuario, @RequestBody Map<String, Object> body) {
+    public Map<String, Object> actualizarPermisos(@PathVariable Integer idUsuario,
+                                                  @RequestBody(required = false) Map<String, Object> body) {
+        if (body == null) {
+            throw com.tecnicsecure.exception.ApiException.badRequest("Debes indicar area y modulos del empleado");
+        }
         String area = body.get("area") != null ? String.valueOf(body.get("area")) : "OPERATIVO";
         List<String> modulos = body.get("modulos") instanceof List<?> lista
                 ? lista.stream().map(String::valueOf).toList()
@@ -83,7 +99,10 @@ public class EmpleadoGestionController {
     @Operation(summary = "Asignar nueva tarea diaria a un empleado")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/tareas")
-    public TareaEmpleado asignarTarea(@RequestBody Map<String, Object> body) {
+    public TareaEmpleado asignarTarea(@RequestBody(required = false) Map<String, Object> body) {
+        if (body == null) {
+            throw com.tecnicsecure.exception.ApiException.badRequest("Los datos de la tarea son obligatorios");
+        }
         // Validacion explicita: un dato faltante debe dar 400, no un 500
         String idTexto = body.get("idEmpleadoUsuario") != null ? String.valueOf(body.get("idEmpleadoUsuario")) : "";
         Integer idEmp;
@@ -115,11 +134,21 @@ public class EmpleadoGestionController {
     @Operation(summary = "Revisar evidencia y calificar (1 a 5) o devolver una tarea")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PatchMapping("/tareas/{id}/calificar")
-    public TareaEmpleado calificar(@PathVariable Integer id, @RequestBody Map<String, Object> body) {
+    public TareaEmpleado calificar(@PathVariable Integer id,
+                                   @RequestBody(required = false) Map<String, Object> body) {
+        if (body == null) {
+            throw com.tecnicsecure.exception.ApiException.badRequest("Debes enviar los datos de revision de la tarea");
+        }
         String estado = body.get("estado") != null ? String.valueOf(body.get("estado")) : "revisada";
-        Integer calificacion = body.get("calificacion") != null && !String.valueOf(body.get("calificacion")).isBlank()
-                ? Integer.valueOf(String.valueOf(body.get("calificacion")))
-                : null;
+        Integer calificacion = null;
+        if (body.get("calificacion") != null && !String.valueOf(body.get("calificacion")).isBlank()) {
+            try {
+                calificacion = Integer.valueOf(String.valueOf(body.get("calificacion")).trim());
+            } catch (NumberFormatException ex) {
+                throw com.tecnicsecure.exception.ApiException.badRequest(
+                        "La calificacion debe ser un numero entero entre 1 y 5");
+            }
+        }
         String obs = body.get("observacionAdmin") != null ? String.valueOf(body.get("observacionAdmin")) : null;
         return service.revisarYCalificarTarea(id, estado, calificacion, obs);
     }

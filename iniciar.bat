@@ -3,9 +3,6 @@ chcp 65001 >nul
 title TECNISECURE - Iniciar API (Spring Boot)
 
 cd /d "%~dp0backend"
-set "JAVA_HOME=C:\Program Files\Java\jdk-22"
-set "PATH=C:\Program Files\Java\jdk-22\bin;C:\Users\X1605ZA-MB013W\.maven\maven-3.9.16\bin;%PATH%"
-set "MAVEN_HOME=C:\Users\X1605ZA-MB013W\.maven\maven-3.9.16"
 
 echo =====================================================================
 echo                 TECNISECURE - API REST (Spring Boot)
@@ -14,7 +11,14 @@ echo.
 
 where java >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] No se encontro Java. Instala JDK 21 y agregalo al PATH.
+    if defined JAVA_HOME if exist "%JAVA_HOME%\bin\java.exe" (
+        set "PATH=%JAVA_HOME%\bin;%PATH%"
+    )
+)
+
+where java >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] No se encontro Java. Instala JDK 21 o superior y agregalo al PATH.
     echo         https://adoptium.net/temurin/releases/?version=21
     echo.
     pause
@@ -23,7 +27,14 @@ if errorlevel 1 (
 
 where mvn >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] No se encontro Maven. Instala Apache Maven y agregalo al PATH.
+    if defined MAVEN_HOME if exist "%MAVEN_HOME%\bin\mvn.cmd" (
+        set "PATH=%MAVEN_HOME%\bin;%PATH%"
+    )
+)
+
+where mvn >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] No se encontro Maven. Instala Apache Maven 3.9+ y agregalo al PATH.
     echo         https://maven.apache.org/download.cgi
     echo.
     pause

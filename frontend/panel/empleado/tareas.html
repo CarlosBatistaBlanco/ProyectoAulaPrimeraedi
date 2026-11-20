@@ -77,6 +77,7 @@
 <div class="modal-overlay" id="modalProgresoTarea">
   <div class="modal-caja modal-caja--ancha">
     <h3 id="tituloModalProgreso"><i class="fa-solid fa-check-to-slot"></i> Reportar avance</h3>
+    <div id="avisoBloqueoTarea" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.45); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:.86rem;"></div>
     <div id="adminFeedbackBox" style="display:none; background:rgba(var(--cian-rgb),0.08); border:1px solid rgba(var(--cian-rgb),0.3); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:.86rem;"></div>
     <form id="formProgresoTarea" class="panel-form">
       <input type="hidden" name="idTarea">
@@ -103,10 +104,11 @@
       </div>
       <p id="respuestaProgresoModal" class="form-respuesta campo--full"></p>
       <div class="panel-form__acciones">
-        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalProgresoTarea')">Cancelar</button>
-        <button type="submit" class="btn btn--primario">Actualizar avance</button>
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalProgresoTarea')">Cerrar</button>
+        <button type="submit" id="btnGuardarProgresoTarea" class="btn btn--primario">Actualizar avance</button>
       </div>
     </form>
+    <div id="historialEntregasEmpleado" style="margin-top:16px; border-top:1px solid var(--azul-acero); padding-top:12px;"></div>
   </div>
 </div>
     </main>

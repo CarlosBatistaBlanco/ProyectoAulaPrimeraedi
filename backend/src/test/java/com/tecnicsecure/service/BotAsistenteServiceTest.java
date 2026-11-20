@@ -43,7 +43,8 @@ class BotAsistenteServiceTest {
         cam.setPrecio(new BigDecimal("180000"));
         cam.setStock(14);
         cam.setActivo(true);
-        when(productoRepository.findAll()).thenReturn(List.of(cam));
+        when(productoRepository.buscar(eq("camara"), isNull(), isNull(), any()))
+                .thenReturn(new PageImpl<>(List.of(cam)));
         when(chatRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var resp = bot.responderAutomatico(3, "Hola, cuanto vale la camara?");

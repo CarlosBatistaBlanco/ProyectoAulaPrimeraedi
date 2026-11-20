@@ -134,4 +134,29 @@ public class InventarioServiceImpl implements InventarioService {
         movimiento.setMotivo("Venta");
         movimientoRepository.save(movimiento);
     }
+
+    @Override
+    @Transactional
+    public void reintegrarPorCancelacion(Integer idProducto, Integer cantidad, String motivo, Integer idUsuario) {
+        if (idProducto == null || cantidad == null || cantidad <= 0) {
+            return;
+        }
+        Producto producto = productoRepository.findById(idProducto).orElse(null);
+        if (producto == null) {
+            return;
+        }
+        int stockActual = producto.getStock() == null ? 0 : producto.getStock();
+        int stockResultante = stockActual + cantidad;
+        producto.setStock(stockResultante);
+        productoRepository.save(producto);
+
+        InventarioMovimiento movimiento = new InventarioMovimiento();
+        movimiento.setIdProducto(idProducto);
+        movimiento.setIdUsuario(idUsuario);
+        movimiento.setTipo("entrada");
+        movimiento.setCantidad(cantidad);
+        movimiento.setStockResultante(stockResultante);
+        movimiento.setMotivo(motivo != null && !motivo.isBlank() ? motivo : "Reingreso por cancelacion");
+        movimientoRepository.save(movimiento);
+    }
 }

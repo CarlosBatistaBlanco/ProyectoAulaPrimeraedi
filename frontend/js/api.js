@@ -299,6 +299,7 @@ const Api = {
   areasActividades: () => Api.get('/gestion-empleados/areas-actividades'),
   misTareas: () => Api.get('/gestion-empleados/mis-tareas'),
   progresoTarea: (id, datos) => Api.patch(`/gestion-empleados/tareas/${id}/progreso`, datos),
+  historialTarea: (id) => Api.get(`/gestion-empleados/tareas/${id}/historial`),
   empleadosCarga: () => Api.get('/gestion-empleados/empleados'),
   actualizarPermisosEmpleado: (idUsuario, datos) =>
     Api.put(`/gestion-empleados/empleados/${idUsuario}/permisos`, datos),

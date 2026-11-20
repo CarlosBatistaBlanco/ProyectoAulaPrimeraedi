@@ -20,4 +20,7 @@ public interface InventarioService {
 
     /** Descuenta stock y registra el movimiento (lo usa el checkout de pedidos). */
     void descontarPorVenta(Integer idProducto, Integer cantidad, Integer idUsuario);
+
+    /** Reintegra stock y registra movimiento de entrada (cancelacion o nota credito). */
+    void reintegrarPorCancelacion(Integer idProducto, Integer cantidad, String motivo, Integer idUsuario);
 }

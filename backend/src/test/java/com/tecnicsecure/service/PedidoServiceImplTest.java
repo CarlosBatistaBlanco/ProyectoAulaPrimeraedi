@@ -157,4 +157,26 @@ class PedidoServiceImplTest {
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("Estado no válido");
     }
+
+    @Test
+    @DisplayName("Al cancelar un pedido reintegra automaticamente el stock al inventario")
+    void cancelarPedidoReintegraStock() {
+        Pedido pedido = new Pedido();
+        pedido.setIdPedido(15);
+        pedido.setEstado(EstadoPedido.PENDIENTE);
+
+        var detalle = new com.tecnicsecure.entity.PedidoDetalle();
+        detalle.setProducto(producto);
+        detalle.setCantidad(3);
+        detalle.setPrecioUnitario(producto.getPrecioFinal());
+        pedido.agregarDetalle(detalle);
+
+        when(pedidoRepository.findById(15)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
+
+        var respuesta = pedidoService.cambiarEstado(15, "cancelado", "Solicitud del cliente", 1);
+
+        assertThat(respuesta.estado()).isEqualTo(EstadoPedido.CANCELADO);
+        verify(inventarioService, times(1)).reintegrarPorCancelacion(eq(1), eq(3), contains("#15"), eq(1));
+    }
 }
