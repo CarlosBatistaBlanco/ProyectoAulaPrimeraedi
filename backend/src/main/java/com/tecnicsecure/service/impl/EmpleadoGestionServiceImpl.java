@@ -25,8 +25,8 @@ public class EmpleadoGestionServiceImpl implements EmpleadoGestionService {
     );
 
     public static final List<String> MODULOS_VALIDOS = List.of(
-            "dashboard", "tareas", "perfil", "ventas", "pedidos",
-            "inventario", "productos", "soporte", "chat"
+            "dashboard", "tareas", "perfil", "direccion", "ventas", "pedidos",
+            "facturacion", "inventario", "productos", "soporte", "chat"
     );
 
     private static final List<String> ESTADOS_ACTIVOS = List.of("pendiente", "en_progreso");

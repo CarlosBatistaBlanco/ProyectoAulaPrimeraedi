@@ -101,20 +101,27 @@ public class EmailService {
             log.info("[EMAIL:SIN_CONFIGURAR] Para={} | Asunto={}", destino, asunto);
         } else {
             try {
+                boolean conAdjunto = StringUtils.hasText(nombreAdjunto)
+                        && bytesAdjunto != null && bytesAdjunto.length > 0;
+
                 MimeMessage mime = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(mime, true, StandardCharsets.UTF_8.name());
+                // multipart solo cuando de verdad se adjunta un archivo.
+                MimeMessageHelper helper = new MimeMessageHelper(mime, conAdjunto, StandardCharsets.UTF_8.name());
                 String from = StringUtils.hasText(remitente) ? remitente : smtpUsername;
                 helper.setFrom(from, "TECNISECURE");
                 helper.setTo(destino);
                 helper.setSubject(asunto);
                 helper.setText(cuerpoHtml != null ? cuerpoHtml : "", true);
-                if (StringUtils.hasText(nombreAdjunto) && bytesAdjunto != null && bytesAdjunto.length > 0) {
+                if (conAdjunto) {
                     helper.addAttachment(nombreAdjunto, new ByteArrayResource(bytesAdjunto), "text/html");
                 }
                 mailSender.send(mime);
                 estado = "ENVIADO";
-                mensajeEstado = "Correo enviado a " + destino + " con el comprobante adjunto.";
-                log.info("[EMAIL:ENVIADO] Para={} | Asunto={} | Adjunto={}", destino, asunto, nombreAdjunto);
+                mensajeEstado = conAdjunto
+                        ? "Correo enviado a " + destino + " con el comprobante adjunto."
+                        : "Factura enviada a " + destino + " en el cuerpo del mensaje.";
+                log.info("[EMAIL:ENVIADO] Para={} | Asunto={} | Adjunto={}", destino, asunto,
+                        conAdjunto ? nombreAdjunto : "ninguno");
             } catch (Exception ex) {
                 estado = "ERROR_ENVIO";
                 mensajeEstado = "No se pudo entregar el correo a " + destino + ". "

@@ -130,14 +130,14 @@ public class FacturacionController {
                                              @jakarta.validation.Valid @RequestBody
                                              com.tecnicsecure.dto.soporte.EnvioFacturaRequest peticion) {
         FacturaDetalleResponse fac = obtenerFactura(id);
+        // La factura va en el cuerpo del correo; no se adjunta ningun archivo.
         String htmlDoc = construirDocumentoHtmlFactura(fac);
-        byte[] adjunto = htmlDoc.getBytes(StandardCharsets.UTF_8);
         return emailService.enviarCorreoConAdjunto(
                 peticion.correo(),
                 "Factura electronica " + fac.numeroFactura() + " - TECNISECURE",
                 htmlDoc,
-                fac.numeroFactura() + ".html",
-                adjunto,
+                null,
+                null,
                 fac.numeroFactura() + " | Pedido #" + id + " | Envio manual a " + peticion.correo());
     }
 
@@ -149,14 +149,14 @@ public class FacturacionController {
         if (!StringUtils.hasText(fac.clienteCorreo())) {
             throw ApiException.badRequest("El cliente no tiene correo registrado");
         }
+        // La factura se muestra dentro del correo (mensaje HTML), sin adjuntos.
         String htmlDoc = construirDocumentoHtmlFactura(fac);
-        byte[] adjunto = htmlDoc.getBytes(StandardCharsets.UTF_8);
         return emailService.enviarCorreoConAdjunto(
                 fac.clienteCorreo(),
                 "Factura electronica " + fac.numeroFactura() + " - TECNISECURE",
                 htmlDoc,
-                fac.numeroFactura() + ".html",
-                adjunto,
+                null,
+                null,
                 fac.numeroFactura() + " | Pedido #" + id + " | Total " + moneda(fac.total()));
     }
 
@@ -247,33 +247,44 @@ public class FacturacionController {
             <html lang="es">
             <head>
               <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
               <title>%s - TECNISECURE</title>
               <style>
-                body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:28px;max-width:780px}
-                .cab{display:flex;justify-content:space-between;border-bottom:2px solid #0a192f;padding-bottom:12px;margin-bottom:14px}
+                body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:24px;background:#f5f7fa}
+                .marco{max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #dde3ea;border-radius:10px;padding:26px}
+                .cab{border-bottom:2px solid #0a192f;padding-bottom:12px;margin-bottom:16px}
+                .cab-derecha{margin-top:10px}
                 table{width:100%%;border-collapse:collapse;margin:14px 0}
-                th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left;font-size:14px}
+                th,td{border-bottom:1px solid #ddd;padding:9px 8px;text-align:left;font-size:14px}
                 th{background:#f3f6fa}
-                .tot{text-align:right;line-height:1.7}
-                .cufe{margin-top:16px;font-size:11px;color:#555;word-break:break-all}
+                .tot{text-align:right;line-height:1.8;margin-top:8px}
+                .cufe{margin-top:18px;font-size:11px;color:#555;word-break:break-all;border-top:1px dashed #ccc;padding-top:12px}
+                @media (max-width:520px){
+                  body{padding:10px}
+                  .marco{padding:16px}
+                  th,td{font-size:12px;padding:6px 4px}
+                }
               </style>
             </head>
             <body>
+              <div class="marco">
               <div class="cab">
                 <div>
                   <h2 style="margin:0 0 4px 0">%s</h2>
                   <div>NIT: %s · %s</div>
                   <div style="font-size:12px;color:#555">%s</div>
                 </div>
-                <div style="text-align:right">
+                <div class="cab-derecha">
                   <h3 style="margin:0 0 4px 0;color:#0077b6">FACTURA %s</h3>
                   <div>Fecha: %s</div>
                   <div>Estado: <strong>%s</strong></div>
                 </div>
               </div>
-              <div style="margin-bottom:12px;font-size:14px;line-height:1.6">
-                <strong>Comprador:</strong> %s · <strong>Correo:</strong> %s<br>
-                <strong>Dirección entrega:</strong> %s · <strong>Pago:</strong> %s
+              <div style="margin-bottom:12px;font-size:14px;line-height:1.7">
+                <strong>Comprador:</strong> %s<br>
+                <strong>Correo:</strong> %s<br>
+                <strong>Dirección entrega:</strong> %s<br>
+                <strong>Pago:</strong> %s
               </div>
               <table>
                 <thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">V. Unitario</th><th style="text-align:right">Subtotal</th></tr></thead>
@@ -285,6 +296,10 @@ public class FacturacionController {
                 <div style="font-size:18px;margin-top:6px">TOTAL: <strong>%s</strong></div>
               </div>
               <div class="cufe"><strong>CUFE:</strong> %s</div>
+              <p style="margin-top:20px;font-size:12px;color:#777;text-align:center">
+                Gracias por confiar en TECNISECURE. Este mensaje fue generado automáticamente.
+              </p>
+              </div>
             </body>
             </html>
             """.formatted(
