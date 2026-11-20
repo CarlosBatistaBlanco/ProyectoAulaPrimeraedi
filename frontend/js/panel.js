@@ -368,6 +368,16 @@ function renderizarBurbujasChat(contenedor, mensajes) {
     contenedor.innerHTML = '<p style="color:var(--texto-tenue); padding:16px;">Aún no hay mensajes en esta conversación.</p>';
     return;
   }
+
+  // Solo se baja solo si el usuario ya estaba al final o llego un mensaje nuevo.
+  // Si subio a leer el historial, se respeta su posicion.
+  const estabaAbajo =
+    contenedor.scrollHeight - contenedor.scrollTop - contenedor.clientHeight < 60;
+  const firma = mensajes.map((m) => `${m.idMensaje ?? ''}:${m.remitente ?? ''}`).join('|');
+  const hayNuevos = firma !== contenedor.dataset.ultimaFirma;
+
+  contenedor.dataset.ultimaFirma = firma;
+
   contenedor.innerHTML = mensajes.map((m) => {
     const esVisitante = m.remitente === 'visitante';
     const esCliente = m.remitente === 'cliente' || esVisitante;
@@ -387,7 +397,10 @@ function renderizarBurbujasChat(contenedor, mensajes) {
         <small>${fecha}</small>
       </div>`;
   }).join('');
-  contenedor.scrollTop = contenedor.scrollHeight;
+
+  if (estabaAbajo || hayNuevos) {
+    contenedor.scrollTop = contenedor.scrollHeight;
+  }
 }
 
 function inicializarChat() {

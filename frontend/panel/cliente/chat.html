@@ -80,12 +80,11 @@
     <button type="button" class="panel-chip" onclick="enviarChipChat('Horarios de atención')"><i class="fa-solid fa-clock"></i> Horarios</button>
     <button type="button" class="panel-chip" onclick="enviarChipChat('Quiero hablar con un asesor')"><i class="fa-solid fa-headset"></i> Hablar con asesor</button>
   </div>
-  <div class="chat-mensajes" id="chatMensajes" data-rol="cliente" style="max-height:420px; overflow-y:auto;">
+  <div class="chat-mensajes" id="chatMensajes" data-rol="cliente">
     <p style="color:var(--texto-tenue);">Cargando conversación…</p>
   </div>
-  <form id="formChat" class="chat-form" style="display:flex; gap:10px; margin-top:14px;">
-    <input type="text" id="mensajeChat" placeholder="Escribe tu mensaje…" autocomplete="off"
-           style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--borde); background:var(--fondo-input); color:var(--texto);">
+  <form id="formChat" class="chat-form">
+    <input type="text" id="mensajeChat" placeholder="Escribe tu mensaje…" autocomplete="off" required>
     <button type="submit" class="btn btn--primario"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
   </form>
 </div>

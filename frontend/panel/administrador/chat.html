@@ -90,11 +90,9 @@
 
 <div class="panel-box" id="panelConversacion" style="display:none;">
   <h2 class="panel-box__titulo"><i class="fa-solid fa-user"></i> <span id="chatConNombre">Conversación</span></h2>
-  <div class="chat-mensajes" id="chatMensajes" data-cliente="" data-rol="asesor"
-       style="max-height:420px; overflow-y:auto;"></div>
-  <form id="formChat" class="chat-form" style="display:flex; gap:10px; margin-top:14px;">
-    <input type="text" id="mensajeChat" placeholder="Escribe tu respuesta…" autocomplete="off"
-           style="flex:1;" required>
+  <div class="chat-mensajes" id="chatMensajes" data-cliente="" data-rol="asesor"></div>
+  <form id="formChat" class="chat-form">
+    <input type="text" id="mensajeChat" placeholder="Escribe tu respuesta…" autocomplete="off" required>
     <button type="submit" class="btn btn--primario"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
   </form>
 </div>
