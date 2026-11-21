@@ -1,19 +1,35 @@
-# Perfil de produccion para MySQL / MariaDB
-# Activar con: --spring.profiles.active=mysql
+# Perfil de produccion para MySQL / MariaDB / TiDB Cloud
+# Activar con: SPRING_PROFILES_ACTIVE=mysql  (o --spring.profiles.active=mysql)
 # Mantener H2 por defecto cuando este perfil no se active.
 
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:tecnicsecure}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+    url: ${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:tecnicsecure}?sslMode=${DB_SSL_MODE:REQUIRED}&enabledTLSProtocols=TLSv1.2,TLSv1.3&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Bogota}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:5}
+      minimum-idle: 1
+      max-lifetime: 300000
+      keepalive-time: 60000
+      connection-timeout: 20000
+
   jpa:
     hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQLDialect
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.MySQLDialect}
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.MySQLDialect}
 
-tecnicsecure:
+  h2:
+    console:
+      enabled: false
+
+tecnisecure:
+  respaldo:
+    habilitado: false
   mail:
     habilitado: ${MAIL_ENABLED:false}
     host: ${MAIL_HOST:smtp.gmail.com}

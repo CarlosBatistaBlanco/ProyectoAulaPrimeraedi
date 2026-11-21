@@ -10,49 +10,66 @@
 
 -- Roles ---------------------------------------------------------------
 INSERT INTO roles (nombre)
-SELECT 'administrador' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'administrador')^^^
+SELECT 'administrador' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'administrador')^^^
 INSERT INTO roles (nombre)
-SELECT 'empleado' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'empleado')^^^
+SELECT 'empleado' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'empleado')^^^
 INSERT INTO roles (nombre)
-SELECT 'cliente' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'cliente')^^^
+SELECT 'cliente' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = 'cliente')^^^
 
 -- Categorías ----------------------------------------------------------
 INSERT INTO categorias (nombre)
-SELECT 'Cámaras de Seguridad' WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Cámaras de Seguridad')^^^
+SELECT 'Cámaras de Seguridad' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Cámaras de Seguridad')^^^
 INSERT INTO categorias (nombre)
-SELECT 'Alarmas' WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Alarmas')^^^
+SELECT 'Alarmas' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Alarmas')^^^
 INSERT INTO categorias (nombre)
-SELECT 'Control de Acceso' WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Control de Acceso')^^^
+SELECT 'Control de Acceso' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Control de Acceso')^^^
 INSERT INTO categorias (nombre)
-SELECT 'Accesorios' WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Accesorios')^^^
+SELECT 'Accesorios' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Accesorios')^^^
 -- Marcas --------------------------------------------------------------
 INSERT INTO marcas (nombre)
-SELECT 'Hikvision' WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Hikvision')^^^
+SELECT 'Hikvision' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Hikvision')^^^
 INSERT INTO marcas (nombre)
-SELECT 'Dahua' WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Dahua')^^^
+SELECT 'Dahua' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Dahua')^^^
 INSERT INTO marcas (nombre)
-SELECT 'TP-Link' WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'TP-Link')^^^
+SELECT 'TP-Link' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'TP-Link')^^^
 INSERT INTO marcas (nombre)
-SELECT 'Genérica' WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Genérica')^^^
+SELECT 'Genérica' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM marcas WHERE nombre = 'Genérica')^^^
 
 -- Servicios -----------------------------------------------------------
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Instalación de Cámaras', 'Instalación profesional de sistemas CCTV en hogares, negocios e industrias.', 'camera', 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Instalación de Cámaras')^^^
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Monitoreo 24/7', 'Monitoreo remoto en tiempo real desde tu celular o computador, todos los días del año.', 'monitor', 2
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Monitoreo 24/7')^^^
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Alarmas y Sensores', 'Diseño e instalación de sistemas de alarma contra intrusos con sensores de movimiento.', 'bell', 3
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Alarmas y Sensores')^^^
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Control de Acceso', 'Sistemas biométricos, tarjetas RFID y citófonos para control de ingreso.', 'lock', 4
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Control de Acceso')^^^
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Mantenimiento Preventivo', 'Revisión periódica de equipos para garantizar el funcionamiento óptimo del sistema.', 'wrench', 5
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Mantenimiento Preventivo')^^^
 INSERT INTO servicios (titulo, descripcion, icono, orden)
 SELECT 'Asesoría y Diseño', 'Diagnóstico del espacio y propuesta a la medida de la seguridad que necesitas.', 'clipboard', 6
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE titulo = 'Asesoría y Diseño')^^^
 
 -- Limpieza y normalización de servicios duplicados o con codificación dañada --
@@ -131,6 +148,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara Domo 4K IP', 'CAM-DOM-4K-001',
        'Domo antivandálico IP67 de 8 MP (4K), lente 2.8 mm, IR de 30 m con Smart IR, detección de movimiento por IA (persona/vehículo) y compresión H.265+ para ahorrar disco.',
        249900.00, 15.00, 19.00, 12, 25, 5, 100, 'img/productos/camaras-01.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-DOM-4K-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -138,6 +156,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara Bullet IP 1080p', 'CAM-BUL-1080-001',
        'Bala metálica IP66 de 2 MP (1080p), sensor CMOS 1/2.8" con WDR de 120 dB, lente fija 3.6 mm, IR de 30 m y ranura microSD para grabación local.',
        179900.00, 0.00, 19.00, 12, 40, 5, 160, 'img/productos/camaras-02.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-BUL-1080-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -145,6 +164,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara PTZ 360 con Seguimiento', 'CAM-PTZ-360-001',
        'PTZ motorizada con giro horizontal de 355° y vertical de 90°, zoom óptico 4x, auto-seguimiento de personas y audio bidireccional. Control remoto desde la app.',
        689900.00, 20.00, 19.00, 12, 8, 5, 32, 'img/productos/camaras-03.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-PTZ-360-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -152,6 +172,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara WiFi Interior 2K', 'CAM-WIFI-2K-001',
        'Cámara WiFi 2K (3 MP) con paneo 360° y tilt 114°, visión nocturna hasta 9 m, audio bidireccional, zonas de privacidad y almacenamiento microSD hasta 512 GB.',
        149900.00, 0.00, 19.00, 12, 35, 5, 140, 'img/productos/camaras-04.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-WIFI-2K-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -159,6 +180,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara ColorVu Full Color', 'CAM-CLRVU-001',
        'Tecnología ColorVu: imagen a color 24/7 incluso sin luz, apertura F1.0, iluminación integrada de 25 m y audio integrado para grabación continua.',
        439900.00, 10.00, 19.00, 12, 15, 5, 60, 'img/productos/camaras-05.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-CLRVU-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -166,6 +188,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara Solar 4G Autónoma', 'CAM-SOLAR-4G-001',
        'Cámara autónoma con panel solar de 6 W y batería de 10.400 mAh, conectividad 4G LTE sin cableado, detección PIR y visión nocturna a color.',
        899900.00, 0.00, 19.00, 12, 6, 3, 24, 'img/productos/camaras-06.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-SOLAR-4G-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Cámaras de Seguridad')),
@@ -173,6 +196,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('C�
        'Cámara Ojo de Pez 360°', 'CAM-FISHEYE-001',
        'Ojo de pez de 5 MP con cobertura de 360° sin puntos ciegos, modo dewarp para vista panorámica y detección de personas. Reemplaza 4 cámaras.',
        529900.00, 0.00, 19.00, 12, 10, 5, 40, 'img/productos/camaras-07.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CAM-FISHEYE-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -180,6 +204,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Alarma Perimetral Inalámbrica', 'ALM-PERI-001',
        'Central de alarma inalámbrica con sensores de movimiento, sirena de 120 dB, armado por zonas, control desde app y batería de respaldo ante cortes.',
        349900.00, 25.00, 19.00, 12, 18, 5, 72, 'img/productos/alarmas-01.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-PERI-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -187,6 +212,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Panel de Alarma GSM', 'ALM-GSM-001',
        'Panel de alarma GSM con tarjeta SIM: notifica por llamada y SMS ante cualquier activación, funciona sin internet ni línea fija, soporta hasta 100 sensores.',
        289900.00, 0.00, 19.00, 12, 22, 5, 88, 'img/productos/alarmas-02.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-GSM-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -194,6 +220,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Sensor de Movimiento PIR', 'ALM-PIR-001',
        'Detector infrarrojo pasivo (PIR) con alcance de 12 m y ángulo de 110°, sensibilidad ajustable e inmunidad a mascotas de hasta 25 kg.',
        79900.00, 15.00, 19.00, 12, 60, 10, 240, 'img/productos/alarmas-03.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-PIR-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -201,6 +228,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Sirena Exterior con Luz', 'ALM-SIRENA-001',
        'Sirena exterior de 115 dB con destello estroboscópico, batería de respaldo recargable y carcasa IP65 resistente a lluvia y polvo.',
        119900.00, 0.00, 19.00, 12, 30, 5, 120, 'img/productos/alarmas-04.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-SIRENA-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -208,6 +236,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Contacto Magnético Puerta', 'ALM-MAG-001',
        'Contacto magnético para puertas y ventanas, instalación inalámbrica sin cables, batería de larga duración y aviso inmediato de apertura al panel.',
        34900.00, 0.00, 19.00, 12, 80, 15, 320, 'img/productos/alarmas-05.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-MAG-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -215,6 +244,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Detector de Humo Inteligente', 'ALM-HUMO-001',
        'Detector fotoeléctrico de humo con alarma audible de 85 dB, indicador LED de estado y alerta simultánea al celular del usuario.',
        89900.00, 0.00, 19.00, 12, 40, 10, 160, 'img/productos/alarmas-06.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-HUMO-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Alarmas')),
@@ -222,6 +252,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Al
        'Botón de Pánico Inalámbrico', 'ALM-PANICO-001',
        'Botón de pánico inalámbrico de una pulsación con alcance de 80 m, activa la sirena y envía alerta inmediata a la app y contactos configurados.',
        49900.00, 0.00, 19.00, 12, 50, 10, 200, 'img/productos/alarmas-07.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ALM-PANICO-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -229,6 +260,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Control de Acceso Biométrico', 'CTRL-BIO-001',
        'Lector biométrico de huella y tarjeta RFID (125 kHz/13.56 MHz) para control de puertas, capacidad de 3.000 huellas y reportes de entradas/salidas exportables.',
        459900.00, 18.00, 19.00, 12, 12, 5, 48, 'img/productos/acceso-01.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-BIO-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -236,6 +268,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Cerraduras Electrónicas', 'CTRL-CERRA-001',
        'Cerradura digital con teclado, huella y app, acceso por código temporal para visitantes, registro de aperturas y batería de larga duración.',
        389900.00, 0.00, 19.00, 12, 14, 5, 56, 'img/productos/acceso-02.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-CERRA-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -243,6 +276,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Videoportero WiFi', 'CTRL-PORTERO-001',
        'Videoportero WiFi con cámara HD de 160°, audio bidireccional, timbre en app y desbloqueo remoto de la puerta desde el celular.',
        329900.00, 10.00, 19.00, 12, 20, 5, 80, 'img/productos/acceso-03.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-PORTERO-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -250,6 +284,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Torniquete de Acceso', 'CTRL-TORNI-001',
        'Torniquete de acero inoxidable con lectura de tarjeta o huella, mecanismo bidireccional y relé de salida para integrar con alarma e incendio.',
        1899900.00, 0.00, 19.00, 12, 5, 2, 20, 'img/productos/acceso-04.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-TORNI-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -257,6 +292,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Lector RFID de Larga Distancia', 'CTRL-RFID-001',
        'Lector RFID de largo alcance con lectura sin contacto hasta 8 m, ideal para parqueaderos y control vehicular de flujo rápido.',
        259900.00, 0.00, 19.00, 12, 16, 5, 64, 'img/productos/acceso-05.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-RFID-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -264,6 +300,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Control de Acceso Vehicular', 'CTRL-VEHIC-001',
        'Sistema vehicular con barrera automática de 3 m, lector de tarjetas y registro de placas con cobro por tiempo para parqueaderos.',
        2450000.00, 0.00, 19.00, 12, 4, 2, 16, 'img/productos/acceso-06.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-VEHIC-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Control de Acceso')),
@@ -271,6 +308,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Co
        'Cerraduras Electromagnéticas', 'CTRL-MAG-001',
        'Electroimán de 280 kg de fuerza de retención, liberación automática ante corte de energía y sensor de puerta para instalaciones de seguridad.',
        189900.00, 0.00, 19.00, 12, 25, 5, 100, 'img/productos/acceso-07.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'CTRL-MAG-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -278,6 +316,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Switch PoE 8 Puertos Gigabit', 'ACC-SW-POE-001',
        'Switch PoE+ de 8 puertos Gigabit con 120 W de presupuesto total, alimenta cámaras IP y access points sin enchufes adicionales.',
        289900.00, 12.00, 19.00, 12, 20, 5, 80, 'img/productos/accesorios-01.jpg', 1, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-SW-POE-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -285,6 +324,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Disco Duro Vigilancia 2TB', 'ACC-HDD-2TB-001',
        'Disco duro de 2 TB de grado vigilancia, diseñado para grabación continua 24/7 en DVR/NVR con tecnología antipérdida de cuadros.',
        219900.00, 12.00, 19.00, 12, 30, 5, 120, 'img/productos/accesorios-02.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-HDD-2TB-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -292,6 +332,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Cable UTP Cat6 305 Metros', 'ACC-UTP-CAT6-001',
        'Bobina de cable UTP Cat6 de 305 m, 100% cobre, apto para exterior con protección UV y soporte de 1 Gbps en tendidos de hasta 100 m.',
        189900.00, 0.00, 19.00, 12, 15, 3, 60, 'img/productos/accesorios-03.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-UTP-CAT6-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -299,6 +340,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Balun Pasivo para Cámaras', 'ACC-BALUN-001',
        'Par de baluns pasivos que transmiten video y alimentación por cable UTP hasta 300 m, reduciendo costo de cableado coaxial.',
        18900.00, 0.00, 19.00, 12, 100, 20, 400, 'img/productos/accesorios-04.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-BALUN-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -306,6 +348,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Fuente de Poder Centralizada', 'ACC-FUENTE-001',
        'Fuente centralizada de 12V 10A en caja metálica con llave y 9 salidas con fusible independiente para proteger cada cámara.',
        99900.00, 0.00, 19.00, 12, 25, 5, 100, 'img/productos/accesorios-05.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-FUENTE-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -313,6 +356,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Soporte de Cámara Pared', 'ACC-SOPORTE-001',
        'Brazo metálico ajustable con paso interno de cables para cámaras domo o bala, acabado anticorrosivo apto para intemperie.',
        29900.00, 20.00, 19.00, 12, 45, 10, 180, 'img/productos/accesorios-06.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-SOPORTE-001')^^^
 INSERT INTO productos (id_categoria, id_marca, nombre, sku, descripcion, precio, descuento_pct, impuesto_pct, garantia_meses, stock, stock_minimo, stock_maximo, imagen, destacado, activo)
 SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Accesorios')),
@@ -320,6 +364,7 @@ SELECT (SELECT MIN(id_categoria) FROM categorias WHERE LOWER(nombre) = LOWER('Ac
        'Caja de Paso Estanca IP65', 'ACC-CAJA-001',
        'Caja de paso estanca IP65 para ocultar cables y conectores en exteriores, protege las conexiones de agua, polvo y sol.',
        14900.00, 0.00, 19.00, 12, 120, 25, 480, 'img/productos/accesorios-07.jpg', 0, 1
+FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE sku = 'ACC-CAJA-001')^^^
 
 

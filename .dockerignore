@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+backend/target
+backend/data
+database
+*.md
+*.bat
+*.ps1
+docker-compose.yml

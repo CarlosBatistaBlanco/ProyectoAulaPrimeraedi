@@ -88,6 +88,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Driver MySQL / TiDB Cloud (se activa solo con el perfil 'mysql') -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Documentacion OpenAPI / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
