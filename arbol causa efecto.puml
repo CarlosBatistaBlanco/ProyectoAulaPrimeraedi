@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+skinparam rectangle {
+    BorderColor black
+    BackgroundColor white
+}
+' Efectos (Nivel Superior)
+rectangle "EFECTOS (CONSECUENCIAS)" as EFECTOS {
+    rectangle "Tiempos de respuesta lentos y\npérdida de clientes potenciales" as E1
+    rectangle "Venta accidental de productos agotados\ny cancelaciones forzadas" as E2
+    rectangle "Descontento e insatisfacción del cliente\npor garantías y servicios técnicos retrasados" as E3
+    rectangle "Toma de decisiones empírica\nsin sustento en datos e indicadores reales" as E4
+}
+' Problema Central (Tronco del Árbol)
+rectangle "**PROBLEMA CENTRAL:**\nIneficiencia operativa, descontrol de existencias en inventario\ny deficiente seguimiento de servicios técnicos en la gestión\ncomercial de seguridad electrónica (TecniServicios)" as PROBLEMA
+' Causas Raíz (Nivel Inferior)
+rectangle "CAUSAS (RAÍCES DEL PROBLEMA)" as CAUSAS {
+    rectangle "Cotizaciones y compras gestionadas\nmanualmente o a través de canales dispersos" as C1
+    rectangle "Desconexión entre el catálogo visible y\nlas existencias físicas reales en bodega" as C2
+    rectangle "Canales de soporte y atención informales\nsin historial, radicación ni trazabilidad" as C3
+    rectangle "Ausencia de auditoría de actividad\ny reportería financiera centralizada" as C4
+}
+' Relaciones de Causas hacia el Problema
+C1 -up-> PROBLEMA
+C2 -up-> PROBLEMA
+C3 -up-> PROBLEMA
+C4 -up-> PROBLEMA
+' Relaciones del Problema hacia los Efectos
+PROBLEMA -up-> E1
+PROBLEMA -up-> E2
+PROBLEMA -up-> E3
+PROBLEMA -up-> E4
+@enduml

@@ -1,0 +1,418 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 10
+skinparam roundCorner 4
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 45
+
+skinparam entity {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+}
+
+title MODELO ENTIDAD-RELACION (MER) - TECNISERVICIOS (TECNISECURE v2.0 - 28 ENTIDADES)
+
+' ==========================================
+' MODULO 1: USUARIOS, SEGURIDAD Y DIRECCIONES
+' ==========================================
+package "Usuarios, Seguridad y Direcciones" {
+    entity "roles" as roles {
+        * id_rol : INT <<PK>>
+        --
+        * nombre : VARCHAR(30) <<UNIQUE>>
+    }
+
+    entity "usuarios" as usuarios {
+        * id_usuario : INT <<PK>>
+        --
+        * id_rol : INT <<FK>>
+        * nombre : VARCHAR(120)
+        * correo : VARCHAR(150) <<UNIQUE>>
+        documento : VARCHAR(30) <<UNIQUE>>
+        telefono : VARCHAR(30)
+        avatar : VARCHAR(255)
+        * password_hash : VARCHAR(255)
+        activo : BOOLEAN
+        bloqueado : BOOLEAN
+        bloqueado_hasta : TIMESTAMP
+        intentos_fallidos : INT
+        ultimo_acceso : TIMESTAMP
+        creado_en : TIMESTAMP
+    }
+
+    entity "clientes" as clientes {
+        * id_cliente : INT <<PK>>
+        --
+        id_usuario : INT <<FK, UNIQUE>>
+        * nombre : VARCHAR(120)
+        * correo : VARCHAR(150)
+        telefono : VARCHAR(30)
+        direccion : VARCHAR(255)
+        creado_en : TIMESTAMP
+    }
+
+    entity "direcciones_usuario" as direcciones_usuario {
+        * id_direccion : INT <<PK>>
+        --
+        * id_usuario : INT <<FK>>
+        * etiqueta : VARCHAR(60)
+        * direccion : VARCHAR(255)
+        ciudad : VARCHAR(100)
+        barrio : VARCHAR(100)
+        telefono : VARCHAR(30)
+        nombre_recibe : VARCHAR(120)
+        referencia : VARCHAR(255)
+        latitud : DOUBLE
+        longitud : DOUBLE
+        * predeterminada : BOOLEAN
+        creado_en : TIMESTAMP
+        actualizado_en : TIMESTAMP
+    }
+
+    entity "tokens_recuperacion" as tokens_recuperacion {
+        * id_token : INT <<PK>>
+        --
+        * id_usuario : INT <<FK>>
+        * token : VARCHAR(100)
+        * expira_en : TIMESTAMP
+        usado : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+
+    entity "logs_actividad" as logs_actividad {
+        * id_log : INT <<PK>>
+        --
+        id_usuario : INT <<FK>>
+        * accion : VARCHAR(100)
+        detalle : VARCHAR(255)
+        ip : VARCHAR(45)
+        creado_en : TIMESTAMP
+    }
+
+    entity "notificaciones" as notificaciones {
+        * id_notificacion : INT <<PK>>
+        --
+        * id_usuario : INT <<FK>>
+        * titulo : VARCHAR(150)
+        mensaje : VARCHAR(255)
+        enlace : VARCHAR(255)
+        leida : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+}
+
+' ==========================================
+' MODULO 2: GESTION DE EMPLEADOS Y TAREAS
+' ==========================================
+package "Gestion de Empleados y Tareas" {
+    entity "empleados" as empleados {
+        * id_empleado : INT <<PK>>
+        --
+        * id_usuario : INT <<FK, UNIQUE>>
+        cargo : VARCHAR(100)
+        fecha_ingreso : DATE
+    }
+
+    entity "empleados_perfiles" as empleados_perfiles {
+        * id_perfil_empleado : INT <<PK>>
+        --
+        * id_usuario : INT <<FK, UNIQUE>>
+        * area : VARCHAR(40)
+        * modulos_permitidos : VARCHAR(300)
+        actualizado_en : TIMESTAMP
+    }
+
+    entity "tareas_empleados" as tareas_empleados {
+        * id_tarea : INT <<PK>>
+        --
+        * id_empleado_usuario : INT <<FK>>
+        id_asignador_usuario : INT <<FK>>
+        * titulo : VARCHAR(150)
+        descripcion : TEXT
+        * prioridad : VARCHAR(20)
+        fecha_limite : DATE
+        * estado : VARCHAR(25)
+        evidencia : TEXT
+        comentario_empleado : TEXT
+        calificacion : INT
+        observacion_admin : TEXT
+        * creado_en : TIMESTAMP
+        completada_en : TIMESTAMP
+    }
+
+    entity "tareas_historial_entregas" as tareas_historial_entregas {
+        * id_entrega : INT <<PK>>
+        --
+        * id_tarea : INT <<FK>>
+        * numero_intento : INT
+        evidencia : TEXT
+        comentario_empleado : TEXT
+        * estado_revision : VARCHAR(30)
+        calificacion : INT
+        observacion_admin : TEXT
+        * enviado_en : TIMESTAMP
+        revisado_en : TIMESTAMP
+        id_revisor_usuario : INT <<FK>>
+    }
+}
+
+' ==========================================
+' MODULO 3: CATALOGO E INVENTARIO
+' ==========================================
+package "Catalogo e Inventario" {
+    entity "categorias" as categorias {
+        * id_categoria : INT <<PK>>
+        --
+        * nombre : VARCHAR(80)
+    }
+
+    entity "marcas" as marcas {
+        * id_marca : INT <<PK>>
+        --
+        * nombre : VARCHAR(80) <<UNIQUE>>
+    }
+
+    entity "productos" as productos {
+        * id_producto : INT <<PK>>
+        --
+        id_categoria : INT <<FK>>
+        id_marca : INT <<FK>>
+        * nombre : VARCHAR(150)
+        sku : VARCHAR(40) <<UNIQUE>>
+        codigo_barras : VARCHAR(40) <<UNIQUE>>
+        descripcion : TEXT
+        * precio : DECIMAL(10,2)
+        descuento_pct : DECIMAL(5,2)
+        impuesto_pct : DECIMAL(5,2)
+        garantia_meses : INT
+        * stock : INT
+        stock_minimo : INT
+        stock_maximo : INT
+        imagen : VARCHAR(255)
+        destacado : BOOLEAN
+        activo : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+
+    entity "producto_imagenes" as producto_imagenes {
+        * id_imagen : INT <<PK>>
+        --
+        * id_producto : INT <<FK>>
+        * ruta : VARCHAR(255)
+        orden : INT
+    }
+
+    entity "inventario_movimientos" as inventario_movimientos {
+        * id_movimiento : INT <<PK>>
+        --
+        * id_producto : INT <<FK>>
+        id_usuario : INT <<FK>>
+        * tipo : VARCHAR(10)
+        * cantidad : INT
+        * stock_resultante : INT
+        motivo : VARCHAR(255)
+        creado_en : TIMESTAMP
+    }
+
+    entity "favoritos" as favoritos {
+        * id_usuario : INT <<PK, FK>>
+        * id_producto : INT <<PK, FK>>
+        --
+        creado_en : TIMESTAMP
+    }
+
+    entity "resenas" as resenas {
+        * id_resena : INT <<PK>>
+        --
+        * id_producto : INT <<FK, UNIQUE>>
+        * id_usuario : INT <<FK, UNIQUE>>
+        * calificacion : INT
+        comentario : TEXT
+        creado_en : TIMESTAMP
+    }
+}
+
+' ==========================================
+' MODULO 4: PEDIDOS Y FACTURACION
+' ==========================================
+package "Pedidos y Facturacion" {
+    entity "pedidos" as pedidos {
+        * id_pedido : INT <<PK>>
+        --
+        id_cliente : INT <<FK>>
+        id_empleado_registro : INT <<FK>>
+        * total : DECIMAL(10,2)
+        estado : VARCHAR(30)
+        direccion_entrega : VARCHAR(255)
+        latitud : DOUBLE
+        longitud : DOUBLE
+        metodo_pago : VARCHAR(40)
+        detalle_pago : VARCHAR(200)
+        creado_en : TIMESTAMP
+    }
+
+    entity "pedido_detalle" as pedido_detalle {
+        * id_detalle : INT <<PK>>
+        --
+        * id_pedido : INT <<FK>>
+        * id_producto : INT <<FK>>
+        * cantidad : INT
+        * precio_unitario : DECIMAL(10,2)
+    }
+
+    entity "pedidos_historial" as pedidos_historial {
+        * id_historial : INT <<PK>>
+        --
+        * id_pedido : INT <<FK>>
+        estado_anterior : VARCHAR(30)
+        * estado_nuevo : VARCHAR(30)
+        id_usuario : INT <<FK>>
+        creado_en : TIMESTAMP
+    }
+
+    entity "facturas" as facturas {
+        * id_factura : INT <<PK>>
+        --
+        * id_pedido : INT <<FK, UNIQUE>>
+        * numero_factura : VARCHAR(20) <<UNIQUE>>
+        * subtotal : DECIMAL(12,2)
+        * impuestos : DECIMAL(12,2)
+        * descuento : DECIMAL(12,2)
+        * total : DECIMAL(12,2)
+        estado : VARCHAR(20)
+        creado_en : TIMESTAMP
+    }
+}
+
+' ==========================================
+' MODULO 5: SERVICIOS, SOPORTE Y CHAT PUBLICO
+' ==========================================
+package "Servicios, Soporte y Chat Publico" {
+    entity "servicios" as servicios {
+        * id_servicio : INT <<PK>>
+        --
+        * titulo : VARCHAR(150)
+        * descripcion : TEXT
+        icono : VARCHAR(100)
+        orden : INT
+    }
+
+    entity "solicitudes_servicio" as solicitudes_servicio {
+        * id_solicitud : INT <<PK>>
+        --
+        * id_servicio : INT <<FK>>
+        * nombre : VARCHAR(120)
+        * correo : VARCHAR(150)
+        * telefono : VARCHAR(30)
+        direccion : VARCHAR(255)
+        * tipo : VARCHAR(20)
+        fecha_preferida : DATE
+        hora_preferida : TIME
+        descripcion : TEXT
+        tecnico_asignado : VARCHAR(120)
+        observaciones : TEXT
+        estado : VARCHAR(20)
+        creado_en : TIMESTAMP
+    }
+
+    entity "contactos" as contactos {
+        * id_contacto : INT <<PK>>
+        --
+        * nombre : VARCHAR(120)
+        * correo : VARCHAR(150)
+        telefono : VARCHAR(30)
+        asunto : VARCHAR(150)
+        tipo : VARCHAR(20)
+        * mensaje : TEXT
+        respuesta : TEXT
+        id_usuario : INT <<FK>>
+        leido : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+
+    entity "mensajes_chat" as mensajes_chat {
+        * id_mensaje : INT <<PK>>
+        --
+        * id_cliente : INT <<FK>>
+        * remitente : VARCHAR(10)
+        id_usuario_envia : INT <<FK>>
+        * mensaje : TEXT
+        leido : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+
+    entity "conversaciones_visitante" as conversaciones_visitante {
+        * id_conversacion : INT <<PK>>
+        --
+        * token : VARCHAR(64) <<UNIQUE>>
+        nombre : VARCHAR(120)
+        correo : VARCHAR(150)
+        telefono : VARCHAR(30)
+        id_solicitud : INT <<FK>>
+        * estado : VARCHAR(20)
+        * sin_leer : INT
+        creado_en : TIMESTAMP
+        actualizado_en : TIMESTAMP
+    }
+
+    entity "mensajes_visitante" as mensajes_visitante {
+        * id_mensaje : INT <<PK>>
+        --
+        * id_conversacion : INT <<FK>>
+        * remitente : VARCHAR(12)
+        id_usuario_envia : INT <<FK>>
+        * mensaje : TEXT
+        * leido : BOOLEAN
+        creado_en : TIMESTAMP
+    }
+}
+
+' ==========================================
+' RELACIONES PRINCIPALES
+' ==========================================
+roles ||--o{ usuarios : "asigna"
+usuarios |o--o| clientes : "perfil cliente"
+usuarios ||--o| empleados : "perfil empleado"
+usuarios ||--o| empleados_perfiles : "permisos/area"
+usuarios ||--o{ tareas_empleados : "asignado/creador"
+tareas_empleados ||--o{ tareas_historial_entregas : "archiva entregas"
+usuarios |o--o{ tareas_historial_entregas : "revisa entrega"
+usuarios ||--o{ direcciones_usuario : "guarda (max 15)"
+usuarios ||--o{ tokens_recuperacion : "solicita"
+usuarios ||--o{ logs_actividad : "auditoria"
+usuarios ||--o{ notificaciones : "recibe"
+usuarios ||--o{ favoritos : "marca"
+usuarios ||--o{ resenas : "publica"
+usuarios ||--o{ contactos : "responde"
+
+categorias ||--o{ productos : "clasifica"
+marcas ||--o{ productos : "fabrica"
+productos ||--o{ producto_imagenes : "galeria"
+productos ||--o{ inventario_movimientos : "kardex"
+usuarios ||--o{ inventario_movimientos : "registra"
+productos ||--o{ favoritos : "en deseos"
+productos ||--o{ resenas : "calificado"
+
+clientes ||--o{ pedidos : "realiza"
+usuarios ||--o{ pedidos : "registra venta"
+pedidos ||--o{ pedido_detalle : "contiene"
+productos ||--o{ pedido_detalle : "item"
+pedidos ||--o{ pedidos_historial : "trazabilidad"
+usuarios ||--o{ pedidos_historial : "cambia estado"
+pedidos ||--o| facturas : "genera"
+
+servicios ||--o{ solicitudes_servicio : "tipo"
+solicitudes_servicio |o--o{ conversaciones_visitante : "escalado"
+clientes ||--o{ mensajes_chat : "hilo cliente"
+usuarios ||--o{ mensajes_chat : "envia"
+conversaciones_visitante ||--o{ mensajes_visitante : "contiene"
+usuarios ||--o{ mensajes_visitante : "responde asesor"
+
+@enduml

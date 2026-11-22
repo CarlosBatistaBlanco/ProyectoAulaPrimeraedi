@@ -1,0 +1,119 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 10
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 40
+
+skinparam node {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam artifact {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam folder {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam cloud {
+    BorderColor black
+    BackgroundColor white
+}
+
+title DIAGRAMA DE DESPLIEGUE UML - TECNISERVICIOS (TECNISECURE v2.0 - NUBE)
+
+' ==========================================
+' NODO CLIENTE: DISPOSITIVO DEL USUARIO
+' ==========================================
+node "Dispositivo de Usuario\n<<device>>\n(PC / Portatil / Movil)" as DispositivoCliente {
+    node "Navegador Web Estandar\n(Chrome / Edge / Firefox / Movil)" as Navegador {
+        artifact "Frontend Web\n<<artifact>>\n(HTML5, CSS3, Vanilla JS)" as FrontendApp
+        folder "LocalStorage del Navegador\n<<storage>>" as LocalStore {
+            artifact "accessToken / refreshToken (JWT)" as TokensJWT
+            artifact "Carrito de Compras por Usuario" as CarritoLocal
+            artifact "Token de Chat de Visitante" as TokenVisita
+        }
+        FrontendApp ..> LocalStore : lee y almacena
+    }
+}
+
+' ==========================================
+' NUBE PaaS: RENDER (CONTENEDOR DOCKER)
+' ==========================================
+cloud "Plataforma PaaS: Render\n<<cloud>>\nhttps://tecniservicios.onrender.com\n(Proxy inverso HTTPS :443 / WSS)" as RenderCloud {
+
+    node "Contenedor Docker: tecnicsecure\n<<container>>\nDockerfile raiz (Multi-stage Maven -> JRE 21)\nBase: eclipse-temurin:21-jre (UID 10001)\nPerfil: SPRING_PROFILES_ACTIVE=mysql" as ContenedorApp {
+
+        node "Apache Tomcat 10.1 Embebido\n(Puerto dinamico $PORT)" as Tomcat {
+
+            artifact "/app/app.jar\n<<artifact / executable>>\n(tecnicsecure-api-2.0.0.jar - Spring Boot 3.3.5)" as SpringBootApp {
+                component "Spring Security 6\n(JwtAuthenticationFilter + CaptchaService)" as ModuloSeguridad
+                component "14 Controladores REST API\n(/api/* + Swagger /swagger-ui.html)" as ControladoresREST
+                component "Servicios de Negocio\n(Pedidos, Direcciones, Stock, IA, Tareas)" as ServiciosNegocio
+                component "Broker WebSocket STOMP\n(/ws -> /topic/chat, /topic/notificaciones)" as ModuloWebSocket
+                component "Spring Data JPA / Hibernate\n(HikariCP + 28 Repositorios)" as CapaJPA
+                component "WebMvcConfig + Actuator\n(Estaticos, /uploads/**, /actuator/health)" as WebMvc
+
+                ModuloSeguridad ..> ControladoresREST : autoriza
+                ControladoresREST ..> ServiciosNegocio : invoca
+                ServiciosNegocio ..> CapaJPA : persiste
+            }
+        }
+
+        folder "Archivos Embebidos en Imagen\n(/app/frontend)" as CarpetaFrontend {
+            artifact "Sitio Web y Paneles\n(HTML, CSS, JS, img)" as ArchivosFrontend
+            folder "/app/frontend/uploads\n(productos, avatars, evidencias)" as CarpetaUploads
+        }
+    }
+}
+
+' ==========================================
+' NUBE DBaaS: TIDB CLOUD (MYSQL COMPATIBLE)
+' ==========================================
+cloud "Base de Datos Gestionada: TiDB Cloud\n<<cloud / DBaaS>>\nRegion AWS N. Virginia (us-east-1)" as TiDBCloud {
+    database "Cluster Starter (MySQL Compatible)\n<<database>>\nPuerto 4000 (TLSv1.2 / TLSv1.3)\n28 Tablas del Modelo Relacional" as MySQL_DB
+}
+
+' ==========================================
+' SERVICIOS EXTERNOS
+' ==========================================
+cloud "Servicios Externos" as Externos {
+    node "Monitor Keep-Alive\n<<externalService>>\ncron-job.org (cada 10 min)" as CronJob
+    node "API DeepSeek (IA - Opcional)\n<<externalService>>\napi.deepseek.com" as DeepSeekAPI
+    node "Servidor SMTP (Opcional)\n<<externalService>>\nsmtp.gmail.com:587" as SmtpServer
+}
+
+' ==========================================
+' CONEXIONES Y PROTOCOLOS
+' ==========================================
+FrontendApp -- Tomcat : "HTTPS (:443 -> $PORT)\nREST JSON UTF-8 + Bearer JWT"
+FrontendApp -- ModuloWebSocket : "WSS / WebSocket STOMP (/ws)\nChat y Notificaciones"
+
+WebMvc ..> CarpetaFrontend : sirve sitio web y /uploads/**
+ServiciosNegocio ..> CarpetaUploads : I/O imagenes, avatares y evidencias
+CapaJPA -- MySQL_DB : "JDBC mysql-connector-j (:4000)\nsslMode=VERIFY_IDENTITY"
+
+CronJob ..> WebMvc : "HTTPS GET /actuator/health\n(evita suspension por inactividad)"
+ServiciosNegocio ..> DeepSeekAPI : "HTTPS (si DEEPSEEK_API_KEY;\nsi no, fallback Bot local)"
+ServiciosNegocio ..> SmtpServer : "SMTP STARTTLS :587\n(envio de facturas y correos\nsi MAIL_ENABLED=true)"
+
+note bottom of ContenedorApp
+  Respaldo local / offline:
+  El mismo proyecto mantiene soporte para ejecucion local
+  (iniciar.bat o Docker Compose) usando H2 embebida en archivo
+  (MODE=MySQL, respaldo automatico BACKUP TO ZIP).
+end note
+
+@enduml

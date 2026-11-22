@@ -1,0 +1,402 @@
+' =====================================================================
+' DIAGRAMAS DE SECUENCIA UML - TECNISERVICIOS (TECNISECURE v2.0)
+' Formato: PlantUML estandar monocromatico (Blanco y Negro)
+' Archivo con cuatro bloques @startuml independientes (sin numeracion doble)
+' =====================================================================
+
+
+' =====================================================================
+' DIAGRAMA 1: AUTENTICACION JWT CON CAPTCHA HMAC-SHA256 Y BLOQUEO
+' =====================================================================
+@startuml secuencia_autenticacion
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 1: AUTENTICACION JWT Y CAPTCHA HMAC-SHA256 (v2.0)
+
+actor "Usuario\n(Cliente / Empleado / Admin)" as Usuario
+boundary "Interfaz Web\n(login.html / auth-paginas.js)" as UILogin
+control "AuthController" as AuthCtrl
+participant "CaptchaService\n(HMAC-SHA256)" as CaptchaSvc
+participant "AuthServiceImpl" as AuthSvc
+database "UsuarioRepository" as UserRepo
+participant "PasswordEncoder\n(BCrypt)" as BCrypt
+participant "JwtService" as JwtSvc
+database "LogActividadRepository" as LogRepo
+
+' --- Fase 1: Carga del desafio Captcha sin estado ---
+Usuario -> UILogin: Abre pantalla de inicio de sesion
+activate UILogin
+
+UILogin -> AuthCtrl: GET /api/auth/captcha
+activate AuthCtrl
+AuthCtrl -> CaptchaSvc: generar()
+activate CaptchaSvc
+CaptchaSvc --> AuthCtrl: Desafio(pregunta, fichaFirmada [TTL 10 min])
+deactivate CaptchaSvc
+AuthCtrl --> UILogin: HTTP 200 OK {pregunta, token}
+deactivate AuthCtrl
+UILogin --> Usuario: Muestra pregunta matematica de verificacion
+
+' --- Fase 2: Envio de credenciales y validacion ---
+Usuario -> UILogin: Ingresa correo, contrasena y resultado del captcha
+UILogin -> AuthCtrl: POST /api/auth/login\n{correo, password, captcha, captchaToken}
+activate AuthCtrl
+
+AuthCtrl -> AuthSvc: login(LoginRequest, ip)
+activate AuthSvc
+
+AuthSvc -> CaptchaSvc: validar(captchaToken, captcha)
+activate CaptchaSvc
+CaptchaSvc --> AuthSvc: boolean valido
+deactivate CaptchaSvc
+
+alt Captcha invalido o expirado
+    AuthSvc --> AuthCtrl: throw ApiException(400, "Verificacion incorrecta")
+    AuthCtrl --> UILogin: HTTP 400 Bad Request
+    UILogin -> AuthCtrl: GET /api/auth/captcha (recarga nuevo desafio)
+    UILogin --> Usuario: Alerta: "La verificacion no es correcta"
+else Captcha valido
+    AuthSvc -> UserRepo: findByCorreoIgnoreCase(correo)
+    activate UserRepo
+    UserRepo --> AuthSvc: Optional<Usuario>
+    deactivate UserRepo
+
+    alt Usuario no existe o cuenta bloqueada / inactiva
+        AuthSvc --> AuthCtrl: throw BadCredentialsException / LockedException
+        AuthCtrl --> UILogin: HTTP 401 / 423 Error de acceso
+        UILogin --> Usuario: Muestra alerta y recarga captcha
+    else Usuario activo y desbloqueado
+        AuthSvc -> BCrypt: matches(passwordPlano, usuario.getPasswordHash())
+        activate BCrypt
+        BCrypt --> AuthSvc: boolean coincide
+        deactivate BCrypt
+
+        alt Contrasena no coincide
+            AuthSvc -> UserRepo: save(intentosFallidos + 1; bloqueado 15 min si >= 5)
+            AuthSvc -> LogRepo: save(LogActividad: LOGIN_FALLIDO)
+            AuthSvc --> AuthCtrl: throw BadCredentialsException
+            AuthCtrl --> UILogin: HTTP 401 Unauthorized
+            UILogin --> Usuario: Alerta: "Correo o contrasena incorrectos" y recarga captcha
+        else Contrasena valida
+            AuthSvc -> UserRepo: save(intentosFallidos = 0, ultimoAcceso = now)
+            AuthSvc -> JwtSvc: generarToken(usuario)
+            activate JwtSvc
+            JwtSvc --> AuthSvc: accessToken (JWT - 120 min)
+            deactivate JwtSvc
+
+            AuthSvc -> JwtSvc: generarRefreshToken(usuario)
+            activate JwtSvc
+            JwtSvc --> AuthSvc: refreshToken (JWT - 7 dias)
+            deactivate JwtSvc
+
+            AuthSvc -> LogRepo: save(LogActividad: LOGIN_OK, ip)
+            AuthSvc --> AuthCtrl: TokenResponse(tokens, datosUsuario)
+            deactivate AuthSvc
+
+            AuthCtrl --> UILogin: HTTP 200 OK {accessToken, refreshToken, usuario}
+            deactivate AuthCtrl
+
+            UILogin -> UILogin: Guarda sesion y tokens en LocalStorage
+            UILogin --> Usuario: Redirige al panel segun rol (Admin / Empleado / Cliente)
+            deactivate UILogin
+        end
+    end
+end
+
+@enduml
+
+
+' =====================================================================
+' DIAGRAMA 2: CONFIRMACION DE PEDIDO CON DIRECCIONES Y CONTROL DE STOCK
+' =====================================================================
+@startuml secuencia_creacion_pedido
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 2: CHECKOUT CON DIRECCIONES Y CONTROL DE STOCK (v2.0)
+
+actor "Usuario Autenticado" as Cliente
+boundary "Carrito Web (2 Vistas)\n(carrito.js / api.js)" as UICarrito
+control "JwtAuthenticationFilter" as SecurityFilter
+control "DireccionController" as DirCtrl
+participant "DireccionServiceImpl" as DirSvc
+control "PedidoController" as PedCtrl
+participant "PedidoServiceImpl" as PedSvc
+database "ProductoRepository" as ProdRepo
+database "PedidoRepository" as PedRepo
+participant "InventarioServiceImpl" as InvSvc
+database "InventarioMovimientoRepo" as InvRepo
+database "PedidoHistorialRepo" as HistRepo
+participant "SoporteService" as SopSvc
+
+' --- Paso previo: precarga de direcciones guardadas ---
+Cliente -> UICarrito: Pulsa "Ir a pagar" en el panel del carrito
+activate UICarrito
+
+UICarrito -> DirCtrl: GET /api/direcciones (Bearer JWT)
+activate DirCtrl
+DirCtrl -> DirSvc: misDirecciones()
+activate DirSvc
+DirSvc --> DirCtrl: List<DireccionResponse> (incluye predeterminada)
+deactivate DirSvc
+DirCtrl --> UICarrito: HTTP 200 OK (direcciones guardadas)
+deactivate DirCtrl
+
+UICarrito --> Cliente: Abre vista de pago precargando perfil y direccion predeterminada
+
+' --- Confirmacion del pedido ---
+Cliente -> UICarrito: Revisa/edita direccion y metodo de pago, y pulsa "Confirmar pedido"
+
+UICarrito -> SecurityFilter: POST /api/pedidos (Bearer JWT)\n{nombre, correo, telefono, direccion, carrito, metodoPago, latitud, longitud}
+activate SecurityFilter
+SecurityFilter -> SecurityFilter: Valida firma y vigencia del JWT
+SecurityFilter -> PedCtrl: Despacha solicitud autenticada
+deactivate SecurityFilter
+activate PedCtrl
+
+PedCtrl -> PedSvc: registrar(PedidoRequest)
+activate PedSvc
+
+note over PedSvc: Inicio de Transaccion (@Transactional)
+
+loop Por cada item del carrito
+    PedSvc -> ProdRepo: findById(idProducto)
+    activate ProdRepo
+    ProdRepo --> PedSvc: Producto (activo, stock, getPrecioFinal())
+    deactivate ProdRepo
+
+    PedSvc -> PedSvc: Valida existencia fisica (stock >= cantidad)
+
+    alt Stock insuficiente o producto inactivo
+        PedSvc --> PedCtrl: throw ApiException(400, "Stock insuficiente para: " + nombre)
+        PedCtrl --> UICarrito: HTTP 400 Bad Request
+        UICarrito --> Cliente: Notifica falta de stock para ajustar el carrito
+    end
+end
+
+PedSvc -> PedSvc: Calcula total con BigDecimal usando precioFinal
+PedSvc -> PedRepo: save(Pedido en estado "pendiente")
+activate PedRepo
+PedRepo --> PedSvc: Pedido persistido con idPedido
+deactivate PedRepo
+
+loop Por cada linea del pedido
+    PedSvc -> InvSvc: descontarPorVenta(idProducto, cantidad, idUsuario)
+    activate InvSvc
+    InvSvc -> ProdRepo: save(producto con stock decrementado)
+    InvSvc -> InvRepo: save(Movimiento tipo "SALIDA" + stockResultante)
+    InvSvc --> PedSvc: Stock actualizado en Kardex
+    deactivate InvSvc
+end
+
+PedSvc -> HistRepo: save(PedidoHistorial: null -> "pendiente")
+PedSvc -> SopSvc: notificarEquipo("Nuevo pedido #" + idPedido)
+
+note over PedSvc: Fin de Transaccion (Commit Exitoso)
+
+PedSvc --> PedCtrl: PedidoResponse(idPedido, total, estado: "pendiente")
+deactivate PedSvc
+
+PedCtrl --> UICarrito: HTTP 201 Created (JSON PedidoResponse)
+deactivate PedCtrl
+
+UICarrito -> UICarrito: Limpia carrito en LocalStorage
+UICarrito --> Cliente: Muestra confirmacion del pedido y numero #idPedido
+deactivate UICarrito
+
+@enduml
+
+
+' =====================================================================
+' DIAGRAMA 3: ENVIO DE FACTURA ELECTRONICA EN EL CUERPO DEL CORREO (SMTP)
+' =====================================================================
+@startuml secuencia_envio_factura
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 3: ENVIO DE FACTURA POR CORREO EN CUERPO HTML (v2.0)
+
+actor "Empleado / Administrador" as Staff
+boundary "Panel de Facturacion\n(facturacion.html / paginas-panel.js)" as UIPanel
+control "JwtAuthenticationFilter" as SecurityFilter
+control "FacturacionController" as FacCtrl
+participant "PedidoService" as PedSvc
+database "FacturaRepository" as FacRepo
+participant "EmailService" as MailSvc
+participant "JavaMailSender\n(SMTP :587)" as Smtp
+database "LogActividadRepository" as LogRepo
+
+' --- Comprobacion inicial del estado del correo ---
+Staff -> UIPanel: Abre modulo de Facturacion
+activate UIPanel
+UIPanel -> FacCtrl: GET /api/pedidos/factura/correo-estado (Bearer JWT)
+activate FacCtrl
+FacCtrl -> MailSvc: estado() [verifica MAIL_ENABLED + usuario + clave]
+activate MailSvc
+MailSvc --> FacCtrl: {configurado, servidor, remitente}
+deactivate MailSvc
+FacCtrl --> UIPanel: HTTP 200 OK (muestra aviso verde o advertencia)
+deactivate FacCtrl
+
+' --- Envio de factura al cliente o a un correo indicado ---
+Staff -> UIPanel: Pulsa "Enviar por correo" (al cliente o a otro correo indicado)
+
+UIPanel -> SecurityFilter: POST /api/pedidos/{id}/enviar-factura\n(o POST /api/pedidos/{id}/enviar-factura-a {correo})
+activate SecurityFilter
+SecurityFilter -> SecurityFilter: Valida JWT y rol (ADMINISTRADOR o EMPLEADO)
+SecurityFilter -> FacCtrl: Despacha solicitud autorizada
+deactivate SecurityFilter
+activate FacCtrl
+
+FacCtrl -> PedSvc: obtener(idPedido)
+activate PedSvc
+PedSvc --> FacCtrl: PedidoResponse (comprador, total, detalles)
+deactivate PedSvc
+
+FacCtrl -> FacRepo: findByIdPedido(idPedido)
+activate FacRepo
+FacRepo --> FacCtrl: Optional<Factura>
+deactivate FacRepo
+
+FacCtrl -> FacCtrl: Calcula CUFE y construye plantilla HTML responsive (sin adjuntos)
+
+FacCtrl -> MailSvc: enviarCorreoConAdjunto(correoDestino, asunto, htmlDoc, null, null, resumen)
+activate MailSvc
+
+alt Correo invalido o vacio
+    note over MailSvc: estado = "SIN_DESTINATARIO"
+else !estaConfigurado() (faltan credenciales SMTP)
+    note over MailSvc: estado = "CORREO_NO_CONFIGURADO"\n(comprobante auditado localmente; disponible para descarga)
+else SMTP configurado (MAIL_ENABLED + usuario + clave)
+    MailSvc -> Smtp: send(MimeMessage HTML en el cuerpo, multipart=false, sin adjunto)
+    activate Smtp
+    alt Despacho SMTP exitoso
+        Smtp --> MailSvc: Confirmacion de envio
+        note right of MailSvc: estado = "ENVIADO"
+    else Error de entrega o conexion SMTP
+        Smtp --> MailSvc: MailException
+        note right of MailSvc: estado = "ERROR_ENVIO"
+    end
+    deactivate Smtp
+end
+
+MailSvc -> LogRepo: save(LogActividad: envio_correo + destino + estado)
+activate LogRepo
+LogRepo --> MailSvc: Registro de auditoria guardado
+deactivate LogRepo
+
+MailSvc --> FacCtrl: Map {estado, mensaje, destinatario, asunto, servidor}
+deactivate MailSvc
+
+FacCtrl --> UIPanel: HTTP 200 OK {estado, mensaje}
+deactivate FacCtrl
+
+UIPanel --> Staff: Muestra confirmacion ("Factura enviada en el cuerpo del mensaje" o aviso)
+deactivate UIPanel
+
+@enduml
+
+
+' =====================================================================
+' DIAGRAMA 4: FLUJO DE TAREAS CON BLOQUEO, DEVOLUCION E HISTORIAL
+' =====================================================================
+@startuml secuencia_flujo_tareas
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title DIAGRAMA DE SECUENCIA 4: ENTREGA BLOQUEADA, DEVOLUCION E HISTORIAL DE TAREAS (v2.0)
+
+actor "Empleado" as Emp
+actor "Administrador" as Admin
+boundary "Panel Tareas\n(tareas.html)" as UI
+control "EmpleadoGestionController" as EmpCtrl
+participant "EmpleadoGestionServiceImpl" as EmpSvc
+database "TareaEmpleadoRepository" as TareaRepo
+database "TareaHistorialEntregaRepository" as HistRepo
+participant "SoporteService" as SopSvc
+
+== 1. Primera entrega y bloqueo inmediato ==
+Emp -> UI: Sube archivo y marca tarea como "completada"
+activate UI
+UI -> EmpCtrl: PATCH /api/gestion-empleados/tareas/{id}/progreso\n{estado:"completada", evidencia, comentario}
+activate EmpCtrl
+EmpCtrl -> EmpSvc: actualizarProgreso(id, "completada", evidencia, comentario)
+activate EmpSvc
+EmpSvc -> TareaRepo: findById(id)
+TareaRepo --> EmpSvc: TareaEmpleado (estado="en_progreso")
+EmpSvc -> HistRepo: save(TareaHistorialEntrega: intento #1, estadoRevision="en_revision")
+EmpSvc -> TareaRepo: save(tarea: estado="completada", completadaEn=ahora)
+EmpSvc -> SopSvc: notificar(Administradores, "Tarea lista para revisar")
+EmpSvc --> EmpCtrl: TareaEmpleado (completada)
+deactivate EmpSvc
+EmpCtrl --> UI: HTTP 200 OK
+deactivate EmpCtrl
+UI --> Emp: Bloquea formulario (solo lectura + historial)
+deactivate UI
+
+== 2. Intento de modificacion mientras esta en revision ==
+Emp -> EmpCtrl: PATCH /api/gestion-empleados/tareas/{id}/progreso\n{estado:"en_progreso"}
+activate EmpCtrl
+EmpCtrl -> EmpSvc: actualizarProgreso(...)
+activate EmpSvc
+EmpSvc -> TareaRepo: findById(id)
+TareaRepo --> EmpSvc: TareaEmpleado (estado="completada")
+EmpSvc --> EmpCtrl: throw ApiException(400, "En espera de revision del administrador")
+deactivate EmpSvc
+EmpCtrl --> Emp: HTTP 400 Bad Request (Bloqueo garantizado en backend)
+deactivate EmpCtrl
+
+== 3. Devolucion para correccion y archivado de entrega #1 ==
+Admin -> UI: Revisa entrega #1 y elige "Devolver para correccion"
+activate UI
+UI -> EmpCtrl: PATCH /api/gestion-empleados/tareas/{id}/calificar\n{estado:"en_progreso", calificacion, observacionAdmin}
+activate EmpCtrl
+EmpCtrl -> EmpSvc: revisarYCalificarTarea(id, "en_progreso", cal, obs)
+activate EmpSvc
+EmpSvc -> HistRepo: findFirstByIdTareaOrderByNumeroIntentoDesc(id)
+HistRepo --> EmpSvc: Entrega #1 ("en_revision")
+EmpSvc -> HistRepo: save(Entrega #1: estadoRevision="devuelta", observacionAdmin, revisadoEn)
+EmpSvc -> TareaRepo: save(tarea: estado="en_progreso", limpia evidencia/comentario activos)
+EmpSvc -> SopSvc: notificar(Empleado, "Tarea devuelta para correccion")
+EmpSvc --> EmpCtrl: TareaEmpleado (reabierta)
+deactivate EmpSvc
+EmpCtrl --> UI: HTTP 200 OK
+deactivate EmpCtrl
+deactivate UI
+
+== 4. Segunda entrega corregida conservando la primera archivada ==
+Emp -> UI: Abre tarea devuelta (ve Entrega #1 archivada + obs admin)\ny sube nuevo archivo corrigiendo la tarea
+activate UI
+UI -> EmpCtrl: GET /api/gestion-empleados/tareas/{id}/historial
+EmpCtrl --> UI: [Entrega #1 (devuelta + archivo original + obs)]
+UI -> EmpCtrl: PATCH /api/gestion-empleados/tareas/{id}/progreso\n{estado:"completada", evidenciaNuevoArchivo}
+activate EmpCtrl
+EmpCtrl -> EmpSvc: actualizarProgreso(...)
+activate EmpSvc
+EmpSvc -> HistRepo: save(Entrega #2, estadoRevision="en_revision")
+EmpSvc -> TareaRepo: save(tarea: estado="completada")
+EmpSvc --> EmpCtrl: TareaEmpleado (completada · bloqueo activo)
+deactivate EmpSvc
+EmpCtrl --> UI: HTTP 200 OK
+deactivate EmpCtrl
+UI --> Emp: Tarea nuevamente bloqueada; historial muestra Entrega #2 y Entrega #1
+deactivate UI
+
+@enduml

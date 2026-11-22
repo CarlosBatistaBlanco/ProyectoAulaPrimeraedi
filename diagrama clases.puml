@@ -1,0 +1,502 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 10
+skinparam roundCorner 4
+skinparam nodesep 22
+skinparam ranksep 35
+skinparam packageStyle rectangle
+
+skinparam class {
+    BorderColor black
+    BackgroundColor white
+    ArrowColor black
+}
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+}
+
+top to bottom direction
+
+title DIAGRAMA DE CLASES UML - ARQUITECTURA Y DOMINIO (TECNISECURE v2.0)
+
+' ==========================================
+' CAPA 1: SEGURIDAD Y CONTROLADORES REST
+' ==========================================
+package "com.tecnicsecure.security" as pkgSec {
+    class JwtAuthenticationFilter {
+        - jwtService: JwtService
+        - userDetailsService: UsuarioDetailsService
+        --
+        # doFilterInternal(req, res, chain): void
+    }
+
+    class JwtService {
+        - clave: SecretKey
+        - expiracionMinutos: long
+        - refreshMinutos: long
+        --
+        + generarToken(usuario: Usuario): String
+        + generarRefreshToken(usuario: Usuario): String
+        + extraerUsuario(token: String): String
+        + extraerRol(token: String): String
+        + esTokenValido(token: String): boolean
+    }
+
+    JwtAuthenticationFilter --> JwtService
+}
+
+package "com.tecnicsecure.controller" as pkgCtrl {
+    class AuthController {
+        - authService: AuthService
+        - captchaService: CaptchaService
+        --
+        + login(req: LoginRequest, http): TokenResponse
+        + refrescar(req: RefreshRequest): TokenResponse
+        + registro(req: RegistroRequest): ResponseEntity
+        + captcha(): Map<String, String>
+        + yo(): UsuarioResponse
+    }
+
+    class DireccionController {
+        - direccionService: DireccionService
+        --
+        + listar(): List<DireccionResponse>
+        + principal(): ResponseEntity
+        + crear(req: DireccionRequest): ResponseEntity
+        + marcarPredeterminada(id: Integer): DireccionResponse
+        + eliminar(id: Integer): ResponseEntity
+    }
+
+    class CatalogoController {
+        - catalogoService: CatalogoService
+        --
+        + listarProductos(...): PageResponse
+        + obtener(id: Integer): ProductoDetalle
+        + crear(req: ProductoRequest): ResponseEntity
+    }
+
+    class PedidoController {
+        - pedidoService: PedidoService
+        --
+        + crear(req: PedidoRequest): ResponseEntity
+        + misPedidos(pageable): PageResponse
+        + cambiarEstado(id, req): PedidoResponse
+    }
+
+    class FacturacionController {
+        - pedidoService: PedidoService
+        - facturaRepository: FacturaRepository
+        - emailService: EmailService
+        --
+        + obtenerFactura(id: Integer): FacturaDetalleResponse
+        + descargarFactura(id: Integer): ResponseEntity
+        + estadoCorreo(): Map<String, Object>
+        + enviarFactura(id: Integer): Map<String, String>
+        + enviarFacturaA(id, req: EnvioFacturaRequest): Map
+        + pagarPedido(id: Integer, body): Map
+        + emitirNotaCredito(id: Integer, body): Map
+    }
+
+    class InventarioController {
+        - inventarioService: InventarioService
+        --
+        + stockBajo(): List<KardexProducto>
+        + kardex(id: Integer): List<MovimientoResponse>
+        + registrarMovimiento(id, req): MovimientoResponse
+    }
+
+    class SoporteController {
+        - soporteService: SoporteService
+        - visitaService: ConversacionVisitanteService
+        --
+        + crearSolicitud(req): SolicitudResponse
+        + enviarMensaje(...): MensajeChatResponse
+        + notificaciones(): List<NotificacionResponse>
+    }
+
+    class AsistenteController {
+        - asistentePublicoService: AsistentePublicoService
+        - visitaService: ConversacionVisitanteService
+        --
+        + conversar(req): AsistenteResponse
+        + mensajes(token: String): List
+    }
+
+    class EmpleadoGestionController {
+        - gestionService: EmpleadoGestionService
+        --
+        + miPerfil(): Map
+        + actualizarPermisos(idUsuario, ...): Map
+        + asignarTarea(...): TareaEmpleado
+        + actualizarProgreso(id, body): TareaEmpleado
+        + calificar(id, body): TareaEmpleado
+        + historialTarea(id): List<TareaHistorialEntrega>
+    }
+}
+
+' ==========================================
+' CAPA 2: SERVICIOS DE NEGOCIO
+' ==========================================
+package "com.tecnicsecure.service" as pkgSvc {
+    class CaptchaService {
+        - claveSecreta: byte[]
+        - TTL_SEGUNDOS: long = 600
+        --
+        + generar(): Desafio
+        + validar(ficha, respuesta): boolean
+    }
+
+    interface AuthService {
+        + login(req, ip): TokenResponse
+        + refrescar(token): TokenResponse
+        + registrar(req): Usuario
+    }
+
+    class AuthServiceImpl {
+        - usuarioRepository: UsuarioRepository
+        - logRepository: LogActividadRepository
+        - passwordEncoder: PasswordEncoder
+        - jwtService: JwtService
+        - captchaService: CaptchaService
+    }
+
+    interface DireccionService {
+        + misDirecciones(): List<DireccionResponse>
+        + direccionPrincipal(): DireccionResponse
+        + crear(req): DireccionResponse
+        + marcarPredeterminada(id): DireccionResponse
+    }
+
+    class DireccionServiceImpl {
+        - direccionRepository: DireccionUsuarioRepository
+        - MAX_DIRECCIONES: int = 15
+    }
+
+    interface CatalogoService {
+        + listar(...): PageResponse
+        + obtener(id): ProductoDetalle
+        + crear(req): ProductoDetalle
+    }
+
+    class CatalogoServiceImpl {
+        - productoRepository: ProductoRepository
+        - categoriaRepository: CategoriaRepository
+        - marcaRepository: MarcaRepository
+    }
+
+    interface PedidoService {
+        + registrar(req): PedidoResponse
+        + cambiarEstado(...): PedidoResponse
+        + misPedidos(pageable): PageResponse
+    }
+
+    class PedidoServiceImpl {
+        - pedidoRepository: PedidoRepository
+        - productoRepository: ProductoRepository
+        - historialRepository: PedidoHistorialRepository
+        - inventarioService: InventarioService
+        - soporteService: SoporteService
+    }
+
+    interface InventarioService {
+        + stockBajo(): List<KardexProducto>
+        + descontarPorVenta(idProd, cant, idUsr): void
+        + registrarMovimiento(idProd, req, idUsr): MovimientoResponse
+    }
+
+    class InventarioServiceImpl {
+        - productoRepository: ProductoRepository
+        - movimientoRepository: InventarioMovimientoRepository
+    }
+
+    interface SoporteService {
+        + crearSolicitud(req): SolicitudResponse
+        + enviarMensajeCliente(...): MensajeChatResponse
+        + notificarEquipo(titulo, msg, ruta): void
+    }
+
+    class AsistentePublicoService {
+        - deepSeekService: DeepSeekService
+        - botAsistenteService: BotAsistenteService
+        - visitaService: ConversacionVisitanteService
+        --
+        + conversar(req): AsistenteResponse
+    }
+
+    interface EmpleadoGestionService {
+        + actualizarPermisos(...): Map
+        + asignarTarea(...): TareaEmpleado
+        + actualizarProgreso(...): TareaEmpleado
+        + revisarYCalificarTarea(...): TareaEmpleado
+        + historialTarea(id): List<TareaHistorialEntrega>
+    }
+
+    class EmailService {
+        - mailSender: JavaMailSender
+        - logRepository: LogActividadRepository
+        - habilitado: boolean
+        - host: String
+        - smtpUsername: String
+        - smtpPassword: String
+        --
+        + estaConfigurado(): boolean
+        + estado(): Map<String, Object>
+        + enviarCorreo(dest, asunto, resumen): Map
+        + enviarCorreoConAdjunto(dest, asunto, html, nombre, bytes, resumen): Map
+    }
+
+    AuthServiceImpl ..|> AuthService
+    DireccionServiceImpl ..|> DireccionService
+    CatalogoServiceImpl ..|> CatalogoService
+    PedidoServiceImpl ..|> PedidoService
+    InventarioServiceImpl ..|> InventarioService
+
+    AuthServiceImpl --> CaptchaService
+    PedidoServiceImpl --> InventarioService
+    PedidoServiceImpl --> SoporteService
+}
+
+' ==========================================
+' CAPA 3: ENTIDADES DEL DOMINIO
+' ==========================================
+package "com.tecnicsecure.entity" as pkgEnt {
+    class Rol {
+        - idRol: Integer
+        - nombre: String
+    }
+
+    class Usuario {
+        - idUsuario: Integer
+        - rol: Rol
+        - nombre: String
+        - correo: String
+        - documento: String
+        - telefono: String
+        - avatar: String
+        - passwordHash: String
+        - activo: Boolean
+        - bloqueado: Boolean
+        - bloqueadoHasta: LocalDateTime
+        - intentosFallidos: Integer
+    }
+
+    class Cliente {
+        - idCliente: Integer
+        - usuario: Usuario
+        - nombre: String
+        - correo: String
+        - telefono: String
+        - direccion: String
+    }
+
+    class Empleado {
+        - idEmpleado: Integer
+        - usuario: Usuario
+        - cargo: String
+        - fechaIngreso: LocalDate
+    }
+
+    class EmpleadoPerfil {
+        - idPerfilEmpleado: Integer
+        - idUsuario: Integer
+        - area: String
+        - modulosPermitidos: String
+    }
+
+    class TareaEmpleado {
+        - idTarea: Integer
+        - idEmpleadoUsuario: Integer
+        - titulo: String
+        - prioridad: String
+        - estado: String
+        - evidencia: String
+        - comentarioEmpleado: String
+        - calificacion: Integer
+        - observacionAdmin: String
+    }
+
+    class TareaHistorialEntrega {
+        - idEntrega: Integer
+        - idTarea: Integer
+        - numeroIntento: Integer
+        - evidencia: String
+        - comentarioEmpleado: String
+        - estadoRevision: String
+        - calificacion: Integer
+        - observacionAdmin: String
+        - enviadoEn: LocalDateTime
+        - revisadoEn: LocalDateTime
+    }
+
+    class DireccionUsuario {
+        - idDireccion: Integer
+        - idUsuario: Integer
+        - etiqueta: String
+        - direccion: String
+        - ciudad: String
+        - barrio: String
+        - latitud: Double
+        - longitud: Double
+        - predeterminada: Boolean
+    }
+
+    class Categoria {
+        - idCategoria: Integer
+        - nombre: String
+    }
+
+    class Marca {
+        - idMarca: Integer
+        - nombre: String
+    }
+
+    class Producto {
+        - idProducto: Integer
+        - sku: String
+        - codigoBarras: String
+        - nombre: String
+        - precio: BigDecimal
+        - descuentoPct: BigDecimal
+        - impuestoPct: BigDecimal
+        - stock: Integer
+        - stockMinimo: Integer
+        - categoria: Categoria
+        - marca: Marca
+        --
+        + getPrecioFinal(): BigDecimal
+    }
+
+    class Pedido {
+        - idPedido: Integer
+        - cliente: Cliente
+        - empleadoRegistro: Usuario
+        - total: BigDecimal
+        - estado: String
+        - direccionEntrega: String
+        - metodoPago: String
+        - detalles: List<PedidoDetalle>
+        --
+        + agregarDetalle(d): void
+    }
+
+    class PedidoDetalle {
+        - idDetalle: Integer
+        - pedido: Pedido
+        - producto: Producto
+        - cantidad: Integer
+        - precioUnitario: BigDecimal
+    }
+
+    class Factura {
+        - idFactura: Integer
+        - idPedido: Integer
+        - numeroFactura: String
+        - subtotal: BigDecimal
+        - impuestos: BigDecimal
+        - total: BigDecimal
+        - estado: String
+    }
+
+    class EstadoPedido <<utility>> {
+        + {static} PENDIENTE: String
+        + {static} CONFIRMADO: String
+        + {static} EN_PREPARACION: String
+        + {static} EMPACADO: String
+        + {static} ENVIADO: String
+        + {static} ENTREGADO: String
+        + {static} CANCELADO: String
+        --
+        + {static} esValido(e): boolean
+        + {static} permiteTransicion(a, n): boolean
+    }
+
+    class InventarioMovimiento {
+        - idMovimiento: Integer
+        - idProducto: Integer
+        - idUsuario: Integer
+        - tipo: String
+        - cantidad: Integer
+        - stockResultante: Integer
+        - motivo: String
+    }
+
+    class ConversacionVisitante {
+        - idConversacion: Integer
+        - token: String
+        - estado: String
+        - sinLeer: Integer
+    }
+
+    class MensajeVisitante {
+        - idMensaje: Integer
+        - idConversacion: Integer
+        - remitente: String
+        - mensaje: String
+        - leido: Boolean
+    }
+
+    ' Relaciones de dominio (asociacion @OneToOne, NO herencia en Cliente/Empleado)
+    Usuario "N" --> "1" Rol : pertenece a
+    Cliente "0..1" --> "0..1" Usuario : @OneToOne
+    Empleado "0..1" --> "1" Usuario : @OneToOne
+    EmpleadoPerfil "0..1" --> "1" Usuario : permisos
+    TareaEmpleado "N" --> "1" Usuario : asignada a
+    TareaEmpleado "1" *-- "0..*" TareaHistorialEntrega : archiva entregas
+    DireccionUsuario "0..15" --> "1" Usuario : pertenece a
+
+    Producto "N" --> "1" Categoria : clasificado en
+    Producto "N" --> "1" Marca : fabricado por
+    Pedido "1" *-- "N" PedidoDetalle : contiene
+    PedidoDetalle "N" --> "1" Producto : referencia
+    Pedido "N" --> "0..1" Cliente : realizado por
+    Pedido "N" --> "0..1" Usuario : registrado por
+    Pedido ..> EstadoPedido : valida transiciones
+    Factura "0..1" --> "1" Pedido : factura
+    InventarioMovimiento "N" --> "1" Producto : afecta a
+    ConversacionVisitante "1" *-- "N" MensajeVisitante : contiene
+}
+
+' Dependencias entre capas (verticalmente apiladas)
+AuthController --> AuthService
+AuthController --> CaptchaService
+DireccionController --> DireccionService
+CatalogoController --> CatalogoService
+PedidoController --> PedidoService
+FacturacionController --> PedidoService
+FacturacionController --> EmailService
+InventarioController --> InventarioService
+SoporteController --> SoporteService
+AsistenteController --> AsistentePublicoService
+EmpleadoGestionController --> EmpleadoGestionService
+AuthServiceImpl --> JwtService
+
+' Dependencias entre servicios y entidades (desde la fila inferior hacia el dominio para apilar verticalmente)
+AuthServiceImpl --> Usuario
+DireccionServiceImpl --> DireccionUsuario
+CatalogoServiceImpl --> Producto
+PedidoServiceImpl --> Pedido
+InventarioServiceImpl --> InventarioMovimiento
+AsistentePublicoService --> ConversacionVisitante
+EmpleadoGestionService --> TareaEmpleado
+EmailService --> Factura
+
+' Disposicion compacta en cuadricula (3 filas de controladores) y apilado vertical estricto
+AuthController -[hidden]down-> PedidoController
+DireccionController -[hidden]down-> FacturacionController
+CatalogoController -[hidden]down-> InventarioController
+PedidoController -[hidden]down-> SoporteController
+FacturacionController -[hidden]down-> AsistenteController
+InventarioController -[hidden]down-> EmpleadoGestionController
+
+pkgSec -[hidden]right-> pkgCtrl
+pkgCtrl -[hidden]down-> pkgSvc
+CaptchaService -[hidden]down-> EmailService
+DireccionService -[hidden]down-> Factura
+PedidoService -[hidden]down-> Pedido
+CatalogoService -[hidden]down-> ConversacionVisitante
+InventarioService -[hidden]down-> InventarioMovimiento
+
+@enduml
