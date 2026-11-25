@@ -4,20 +4,20 @@
 
 ---
 
-## 📌 Guía y Estructura de Documentación Técnica
+## Guía y Estructura de Documentación Técnica
 
 Esta carpeta contiene la documentación oficial del proyecto de aula **TecniServicios**, compilada bajo estrictas normas académicas e ingenieriles en formato **Word (.docx)** y formato **PDF estándar**.
 
 ---
 
-### 📄 Documento Oficial Unificado en Word (.docx)
+### Documento Oficial Unificado en Word (.docx)
 
 * **[Documento_Tecnico_TecniServicios.docx](Documento_Tecnico_TecniServicios.docx)** (56 KB)  
   *Documento completo y continuo en formato Microsoft Word (.docx), diagramado exclusivamente a blanco y negro, sin elementos decorativos, con enumeración correlativa (del 1 al 8) y basado total y únicamente en el código y arquitectura real de TecniServicios.*
 
 ---
 
-### 📑 Estructura del Documento
+### Estructura del Documento
 
 1. **Preliminares:** Portada académica formal (Unicolombo), Introducción, Justificación (práctica, técnica y social) y Objetivos (general y específicos).
 2. **Planteamiento del Problema:** Descripción de la necesidad en la vida real, formulación de ingeniería y Árbol de causas y efectos.
@@ -30,7 +30,7 @@ Esta carpeta contiene la documentación oficial del proyecto de aula **TecniServ
 
 ---
 
-### 🗂️ Anexos Técnicos
+### Anexos Técnicos
 
 * **[anexos/schema.sql](anexos/schema.sql)** (10 KB): Script SQL DDL puro con la creación formal de tablas (`CREATE TABLE`), llaves primarias, llaves foráneas e índices (compatible con H2 y MySQL).
 * **[anexos/Guia_Sustentacion_y_Demo.pdf](anexos/Guia_Sustentacion_y_Demo.pdf)** (126 KB): Guía ejecutiva de diapositivas y guión paso a paso para la demostración funcional en vivo.

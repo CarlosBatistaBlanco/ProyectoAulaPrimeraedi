@@ -2,10 +2,11 @@
 skinparam monochrome true
 skinparam shadowing false
 skinparam defaultFontName "Times New Roman"
-skinparam defaultFontSize 11
+skinparam defaultFontSize 10
 skinparam roundCorner 4
+skinparam nodesep 25
+skinparam ranksep 35
 
-' Estilos monocromáticos limpios
 skinparam component {
     BorderColor black
     BackgroundColor white
@@ -22,106 +23,136 @@ skinparam database {
     BorderColor black
     BackgroundColor white
 }
-
-title DIAGRAMA DE COMPONENTES UML - TECNISERVICIOS (TECNISECURE)
-
-package "Capa de Presentación (Frontend Web)" as Frontend {
-    [Interfaz de Usuario Web\n(HTML5 / CSS3 / Vanilla JS)] as UI
-    [Módulo Cliente API REST\n(Fetch API / Async-Await)] as ClienteAPI
-    [Módulo Cliente WebSocket\n(STOMP.js)] as ClienteWS
-    
-    UI ..> ClienteAPI : <<use>>
-    UI ..> ClienteWS : <<use>>
+skinparam cloud {
+    BorderColor black
+    BackgroundColor white
 }
 
-' Interfaces expuestas por el Backend
-interface "HTTP / REST API\n(JSON UTF-8 / Puerto 8080)" as HTTP_REST
-interface "WebSocket / STOMP\n(TCP / Puerto 8080)" as WS_STOMP
+title DIAGRAMA DE COMPONENTES UML - TECNISERVICIOS (TECNISECURE v2.0)
+
+package "Capa de Presentacion (Frontend Web - HTML5 / CSS3 / Vanilla JS)" as Frontend {
+    [Tienda Publica y Catalogo\n(index.html, productos.html,\ncarrito.js, direcciones.js)] as UI_Tienda
+    [Paneles por Rol\n(Admin, Empleado, Cliente:\npanel.js, direcciones.html)] as UI_Panel
+    [Widget Asistente Publico\n(Chat Visitante + IA)] as UI_Bot
+    [Cliente API REST\n(api.js / Fetch + JWT)] as ClienteAPI
+    [Cliente Tiempo Real\n(STOMP.js + Polling 4s)] as ClienteWS
+
+    UI_Tienda ..> ClienteAPI : <<use>>
+    UI_Panel ..> ClienteAPI : <<use>>
+    UI_Bot ..> ClienteAPI : <<use>>
+    UI_Panel ..> ClienteWS : <<use>>
+}
+
+interface "HTTP / REST API\n(JSON UTF-8 / :8080)" as HTTP_REST
+interface "WebSocket / STOMP\n(/ws / :8080)" as WS_STOMP
 
 ClienteAPI -down-( HTTP_REST
 ClienteWS -down-( WS_STOMP
 
-package "Capa de Negocio y Servicios (Backend Spring Boot 3.3)" as Backend {
+package "Capa de Negocio y Servicios (Backend Spring Boot 3.3.5 / Java 21)" as Backend {
 
-    package "Módulo de Seguridad" as Seguridad {
-        [Filtro de Autenticación JWT\n(JwtAuthenticationFilter)] as JwtFilter
-        [Servicio Criptográfico JWT\n(JwtService)] as JwtSvc
-        
+    package "Modulo de Seguridad y Verificacion" as Seguridad {
+        [SecurityConfig +\nJwtAuthenticationFilter] as JwtFilter
+        [JwtService\n(Access 120m / Refresh 7d)] as JwtSvc
+        [CaptchaService\n(HMAC-SHA256 stateless)] as CaptchaSvc
+
         JwtFilter ..> JwtSvc : <<use>>
     }
 
     HTTP_REST -down-> JwtFilter
     WS_STOMP -down-> JwtFilter
 
-    package "Controladores REST (Capa de Presentación API)" as Controladores {
-        [AuthController] as AuthCtrl
-        [CatalogoController] as CatCtrl
-        [PedidoController] as PedCtrl
-        [InventarioController] as InvCtrl
-        [SoporteController] as SopCtrl
-        [ReporteController] as RepCtrl
-        [ClienteController] as CliCtrl
+    package "Controladores REST (14 Controladores)" as Controladores {
+        [AuthController\n(/api/auth)] as AuthCtrl
+        [DireccionController\n(/api/direcciones)] as DirCtrl
+        [CatalogoController +\nClienteController] as CatCtrl
+        [PedidoController +\nFacturacionController] as PedCtrl
+        [InventarioController +\nReporteController] as InvCtrl
+        [SoporteController +\nAsistenteController] as SopCtrl
+        [EmpleadoGestionController +\nUsuarioController] as EmpCtrl
+        [UploadController +\nRespaldoController] as OpsCtrl
     }
 
     JwtFilter ..> AuthCtrl : despacha
+    JwtFilter ..> DirCtrl : despacha
     JwtFilter ..> CatCtrl : despacha
     JwtFilter ..> PedCtrl : despacha
     JwtFilter ..> InvCtrl : despacha
     JwtFilter ..> SopCtrl : despacha
-    JwtFilter ..> RepCtrl : despacha
-    JwtFilter ..> CliCtrl : despacha
+    JwtFilter ..> EmpCtrl : despacha
+    JwtFilter ..> OpsCtrl : despacha
 
-    package "Servicios de Negocio (Lógica del Dominio)" as Servicios {
+    package "Servicios de Negocio (Logica del Dominio)" as Servicios {
         [AuthService] as AuthSvc
+        [DireccionService] as DirSvc
         [CatalogoService] as CatSvc
         [PedidoService] as PedSvc
         [InventarioService] as InvSvc
-        [SoporteService] as SopSvc
-        [ReporteService] as RepSvc
+        [SoporteService +\nConversacionVisitanteService] as SopSvc
+        [AsistentePublicoService +\nBotAsistenteService + DeepSeekService] as IaSvc
+        [EmpleadoGestionService +\nUsuarioService + ReporteService] as AdmSvc
+        [EmailService +\nRespaldoAutomatico] as InfraSvc
     }
 
     AuthCtrl ..> AuthSvc : <<call>>
+    AuthCtrl ..> CaptchaSvc : <<call>>
+    AuthSvc ..> CaptchaSvc : valida captcha
+    AuthSvc ..> JwtSvc : emite tokens
+    DirCtrl ..> DirSvc : <<call>>
     CatCtrl ..> CatSvc : <<call>>
     PedCtrl ..> PedSvc : <<call>>
+    PedCtrl ..> InfraSvc : envia factura
     InvCtrl ..> InvSvc : <<call>>
+    InvCtrl ..> AdmSvc : reportes CSV
     SopCtrl ..> SopSvc : <<call>>
-    RepCtrl ..> RepSvc : <<call>>
+    SopCtrl ..> IaSvc : asistente IA
+    EmpCtrl ..> AdmSvc : <<call>>
+    OpsCtrl ..> InfraSvc : respaldo ZIP
 
-    ' Dependencia entre servicios
-    PedSvc ..> InvSvc : valida y rebaja stock
+    PedSvc ..> InvSvc : descuenta stock
+    PedSvc ..> SopSvc : notifica pedido
+    IaSvc ..> SopSvc : escala a asesor
 
-    package "Capa de Acceso a Datos (Spring Data JPA)" as Repositorios {
-        [UsuarioRepository] as UserRepo
-        [ProductoRepository] as ProdRepo
-        [PedidoRepository] as PedRepo
-        [InventarioMovimientoRepository] as InvRepo
-        [MensajeChatRepository] as ChatRepo
-        [SolicitudServicioRepository] as SolRepo
+    package "Capa de Acceso a Datos (Spring Data JPA - 27 Repositorios)" as Repositorios {
+        [UsuarioRepository +\nDireccionUsuarioRepository +\nLogActividadRepository] as UserRepo
+        [ProductoRepository +\nInventarioMovimientoRepository] as ProdRepo
+        [PedidoRepository +\nPedidoHistorialRepository +\nFacturaRepository] as PedRepo
+        [MensajeChatRepository +\nConversacionVisitanteRepository +\nSolicitudServicioRepository] as SopRepo
+        [EmpleadoPerfilRepository +\nTareaEmpleadoRepository +\nTareaHistorialEntregaRepository] as EmpRepo
     }
 
     AuthSvc ..> UserRepo : <<use>>
+    DirSvc ..> UserRepo : <<use>>
     CatSvc ..> ProdRepo : <<use>>
     PedSvc ..> PedRepo : <<use>>
     PedSvc ..> ProdRepo : <<use>>
-    InvSvc ..> InvRepo : <<use>>
     InvSvc ..> ProdRepo : <<use>>
-    SopSvc ..> ChatRepo : <<use>>
-    SopSvc ..> SolRepo : <<use>>
+    SopSvc ..> SopRepo : <<use>>
+    AdmSvc ..> EmpRepo : <<use>>
+    AdmSvc ..> UserRepo : <<use>>
 }
 
-' Interfaces hacia Persistencia
 interface "JDBC / Hibernate ORM" as JDBC_INT
-interface "I/O Sistema de Archivos" as FS_INT
+interface "I/O Archivos Locales" as FS_INT
+interface "HTTPS REST (Opcional)" as IA_INT
+interface "SMTP STARTTLS (Opcional)" as SMTP_INT
 
 Repositorios -down-( JDBC_INT
-CatSvc -down-( FS_INT
+OpsCtrl -down-( FS_INT
+InfraSvc -down-( FS_INT
+IaSvc -down-( IA_INT
+InfraSvc -down-( SMTP_INT
 
-package "Capa de Persistencia" as Persistencia {
-    database "Base de Datos Embebida\n(H2: tecnicsecure.mv.db)" as H2_DB
-    node "Sistema de Archivos Local\n(/uploads - Imágenes de productos)" as FileSystem
+package "Capa de Persistencia y Servicios Externos" as Persistencia {
+    database "Base de Datos H2\n(tecnicsecure.mv.db / MODE=MySQL)" as H2_DB
+    node "Sistema de Archivos\n(/uploads: productos, avatars, evidencias\n+ /respaldos)" as FileSystem
+    cloud "API DeepSeek\n(api.deepseek.com)" as DeepSeekCloud
+    cloud "Servidor SMTP\n(smtp.gmail.com:587)" as SmtpCloud
 }
 
 JDBC_INT -down-> H2_DB
 FS_INT -down-> FileSystem
+IA_INT -down-> DeepSeekCloud
+SMTP_INT -down-> SmtpCloud
 
 @enduml

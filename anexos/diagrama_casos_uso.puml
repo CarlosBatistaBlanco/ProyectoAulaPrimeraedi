@@ -1,0 +1,136 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+
+skinparam linetype polyline
+skinparam nodesep 20
+skinparam ranksep 75
+skinparam padding 4
+
+skinparam actor {
+    BorderColor black
+    BackgroundColor white
+}
+skinparam usecase {
+    BorderColor black
+    BackgroundColor white
+    ArrowColor black
+}
+skinparam rectangle {
+    BorderColor black
+    BackgroundColor white
+}
+
+left to right direction
+
+title DIAGRAMA DE CASOS DE USO UML - TECNISERVICIOS (TECNISECURE v2.0)
+
+' ==========================================
+' ACTORES EXTERNOS (IZQUIERDA)
+' ==========================================
+actor "Visitante\n(Publico)" as Visitante
+actor "Cliente\nRegistrado" as Cliente
+
+Cliente -up-|> Visitante
+
+' ==========================================
+' LIMITE DEL SISTEMA
+' ==========================================
+rectangle "Sistema TecniServicios (TecniSecure v2.0)" {
+
+    ' --- Autenticacion, Perfil y Direcciones ---
+    usecase "CU-01: Registrarse en el Sistema" as CU01
+    usecase "CU-02: Iniciar Sesion\n(JWT + Captcha HMAC-SHA256)" as CU02
+    usecase "CU-03: Recuperar y Restablecer\nContrasena" as CU03
+    usecase "CU-04: Gestionar Perfil y Avatar" as CU04
+    usecase "CU-05: Gestionar Direcciones\nde Entrega (max. 15)" as CU05
+
+    ' --- Catalogo, Tienda y Pedidos ---
+    usecase "CU-06: Explorar Catalogo\ny Filtrar Productos" as CU06
+    usecase "CU-07: Ver Detalle, Zoom\ny Resenas" as CU07
+    usecase "CU-08: Gestionar Carrito\nde Compras (2 Vistas)" as CU08
+    usecase "CU-09: Gestionar Favoritos\n(Lista de Deseos)" as CU09
+    usecase "CU-10: Confirmar y Procesar\nPedido (Checkout)" as CU10
+    usecase "CU-11: Validar Stock y\nPrecargar Direccion" as CU11
+    usecase "CU-12: Consultar Mis Pedidos\ny Factura" as CU12
+    usecase "CU-13: Publicar Resena de Producto" as CU13
+
+    ' --- Servicios, Soporte y Asistente IA ---
+    usecase "CU-14: Enviar Mensaje de Contacto" as CU14
+    usecase "CU-15: Radicar Solicitud de Servicio\no Cotizacion" as CU15
+    usecase "CU-16: Conversar con Asistente IA\n/ Chat Publico de Visitante" as CU16
+    usecase "CU-17: Chatear en Vivo con Soporte\n(WebSocket STOMP / Panel)" as CU17
+    usecase "CU-18: Atender Solicitudes, Contactos\ny Chats (Clientes y Visitantes)" as CU18
+
+    ' --- Operacion, Inventario y Administracion ---
+    usecase "CU-19: Gestionar Pedidos, Estados\ny Consultar / Descargar Facturas" as CU19
+    usecase "CU-20: Enviar Factura por Correo\n(Cuerpo HTML sin Adjunto / SMTP)" as CU20
+    usecase "CU-21: Registrar Movimientos Kardex\ny Alertas de Stock Minimo" as CU21
+    usecase "CU-22: Gestionar Catalogo\n(Productos, Categorias, Marcas)" as CU22
+    usecase "CU-23: Actualizar Progreso, Entregar\n(Bloqueo en Revision) e Historial" as CU23
+    usecase "CU-24: Registrar Pagos y Emitir\nNotas Credito de Facturas" as CU24
+    usecase "CU-25: Asignar, Revisar/Devolver Tareas,\nVer Historial y Configurar Permisos" as CU25
+    usecase "CU-26: Administrar Usuarios y Roles" as CU26
+    usecase "CU-27: Consultar Auditoria, Reportes\ny Exportar CSV" as CU27
+    usecase "CU-28: Generar Respaldo Completo\n(Archivo ZIP)" as CU28
+}
+
+' ==========================================
+' ACTORES INTERNOS (DERECHA)
+' ==========================================
+actor "Empleado\n(Tecnico / Ventas)" as Empleado
+actor "Administrador\ndel Sistema" as Admin
+
+Admin -left-|> Empleado
+
+' ==========================================
+' RELACIONES INCLUDE / EXTEND
+' ==========================================
+CU07 .left.> CU06 : <<extend>>
+CU10 .right.> CU11 : <<include>>
+CU20 .left.> CU19 : <<extend>>
+
+' ==========================================
+' ASOCIACIONES IZQUIERDA (VISITANTE Y CLIENTE)
+' ==========================================
+Visitante --> CU01
+Visitante --> CU02
+Visitante --> CU03
+Visitante --> CU06
+Visitante --> CU08
+Visitante --> CU14
+Visitante --> CU15
+Visitante --> CU16
+
+Cliente --> CU04
+Cliente --> CU05
+Cliente --> CU09
+Cliente --> CU10
+Cliente --> CU12
+Cliente --> CU13
+Cliente --> CU17
+
+' ==========================================
+' ASOCIACIONES DERECHA (EMPLEADO Y ADMIN)
+' ==========================================
+CU02 <-- Empleado
+CU04 <-- Empleado
+CU05 <-- Empleado
+CU17 <-- Empleado
+CU18 <-- Empleado
+CU19 <-- Empleado
+CU20 <-- Empleado
+CU21 <-- Empleado
+CU22 <-- Empleado
+CU23 <-- Empleado
+
+CU24 <-- Admin
+CU25 <-- Admin
+CU26 <-- Admin
+CU27 <-- Admin
+CU28 <-- Admin
+
+@enduml

@@ -1,0 +1,109 @@
+@startuml realizacion_cu08_pedido
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 11
+skinparam roundCorner 4
+autonumber
+
+title REALIZACION DEL CASO DE USO: CONFIRMAR Y PROCESAR PEDIDO (v2.0)\n(DIAGRAMA DE SECUENCIA DE DISENO)
+
+' ==========================================
+' PARTICIPANTES: ARQUITECTURA DE CASO DE USO
+' ==========================================
+actor "Usuario\nAutenticado" as Cliente
+boundary "Vista: Carrito 2 Vistas\n(carrito.js / HTML5)" as VistaCarrito
+control "Seguridad\n(JwtAuthenticationFilter)" as FiltroAuth
+control "Controlador\n(DireccionController)" as DirCtrl
+control "Controlador\n(PedidoController)" as PedCtrl
+control "Gestor de Reglas\n(PedidoServiceImpl)" as PedSvc
+control "Gestor Inventario\n(InventarioServiceImpl)" as InvSvc
+control "Gestor Notificaciones\n(SoporteService)" as SopSvc
+database "Entidad: Producto\n(ProductoRepository)" as ProdRepo
+database "Entidad: Pedido\n(PedidoRepository)" as PedRepo
+database "Entidad: Kardex\n(InventarioMovimientoRepo)" as InvRepo
+database "Entidad: Historial\n(PedidoHistorialRepo)" as HistRepo
+
+' ==========================================
+' PRECARGA DE DIRECCION EN CHECKOUT (v2.0)
+' ==========================================
+Cliente -> VistaCarrito: Pulsa "Ir a pagar" desde la vista de productos del carrito
+activate VistaCarrito
+
+VistaCarrito -> DirCtrl: GET /api/direcciones [Bearer JWT]
+activate DirCtrl
+DirCtrl --> VistaCarrito: HTTP 200 OK (direcciones guardadas y predeterminada)
+deactivate DirCtrl
+
+VistaCarrito --> Cliente: Muestra formulario de pago precargado con perfil y selector de direccion
+
+' ==========================================
+' FLUJO PRINCIPAL Y ALTERNATIVOS
+' ==========================================
+Cliente -> VistaCarrito: Verifica datos y pulsa "Confirmar pedido"
+
+VistaCarrito -> FiltroAuth: POST /api/pedidos [Bearer JWT]\n{nombre, correo, telefono, direccion, carrito, metodoPago, latitud, longitud}
+activate FiltroAuth
+
+FiltroAuth -> FiltroAuth: Valida firma y vigencia del JWT (120 min)
+
+alt Token invalido o expirado
+    FiltroAuth --> VistaCarrito: HTTP 401 Unauthorized
+    VistaCarrito --> Cliente: "Sesion vencida. Inicia sesion nuevamente"
+else Token valido
+    FiltroAuth -> PedCtrl: Delegar peticion autorizada
+    deactivate FiltroAuth
+    activate PedCtrl
+
+    PedCtrl -> PedSvc: registrar(PedidoRequest)
+    activate PedSvc
+
+    note over PedSvc: Transaccion Atomica (@Transactional)
+
+    loop Por cada item en carrito
+        PedSvc -> ProdRepo: findById(idProducto)
+        activate ProdRepo
+        ProdRepo --> PedSvc: Producto (activo, stock, getPrecioFinal())
+        deactivate ProdRepo
+
+        PedSvc -> PedSvc: Valida existencia fisica (stock >= cantidad)
+
+        alt Stock insuficiente o producto inactivo
+            PedSvc --> PedCtrl: throw ApiException(400, "Stock insuficiente")
+            PedCtrl --> VistaCarrito: HTTP 400 Bad Request
+            VistaCarrito --> Cliente: Alerta: "Stock insuficiente, ajusta tu carrito"
+        end
+    end
+
+    PedSvc -> PedSvc: Calcula total con BigDecimal usando precioFinal
+    PedSvc -> PedRepo: save(nuevoPedido en estado "pendiente")
+    activate PedRepo
+    PedRepo --> PedSvc: Pedido guardado con idPedido
+    deactivate PedRepo
+
+    loop Por cada linea adquirida
+        PedSvc -> InvSvc: descontarPorVenta(idProducto, cantidad, idUsuario)
+        activate InvSvc
+        InvSvc -> ProdRepo: save(producto con stock decrementado)
+        InvSvc -> InvRepo: save(Movimiento tipo "SALIDA" + stockResultante)
+        InvSvc --> PedSvc: Confirmacion de stock actualizado
+        deactivate InvSvc
+    end
+
+    PedSvc -> HistRepo: save(PedidoHistorial: null -> "pendiente")
+    PedSvc -> SopSvc: notificarEquipo("Nuevo pedido #" + idPedido)
+
+    note over PedSvc: Fin de Transaccion (Commit en Base de Datos)
+
+    PedSvc --> PedCtrl: PedidoResponse(idPedido, total, estado: "pendiente")
+    deactivate PedSvc
+
+    PedCtrl --> VistaCarrito: HTTP 201 Created (JSON PedidoResponse)
+    deactivate PedCtrl
+
+    VistaCarrito -> VistaCarrito: Vacia carrito en LocalStorage
+    VistaCarrito --> Cliente: Muestra confirmacion con numero de pedido #idPedido
+    deactivate VistaCarrito
+end
+
+@enduml
