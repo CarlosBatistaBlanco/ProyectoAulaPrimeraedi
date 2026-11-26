@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import com.tecniservicios.tecnisecure.R
 import com.tecniservicios.tecnisecure.data.api.RetrofitClient
 import com.tecniservicios.tecnisecure.data.local.CarritoManager
@@ -92,8 +93,13 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Producto agotado temporalmente", Toast.LENGTH_SHORT).show()
                 } else {
                     CarritoManager.agregar(p)
-                    actualizarBadgeCarrito()
-                    Toast.makeText(this, "Añadido al carrito: ${p.nombre}", Toast.LENGTH_SHORT).show()
+                    actualizarBadgeCarrito(animar = true)
+                    Snackbar.make(binding.root, "Agregado al carrito: ${p.nombre}", Snackbar.LENGTH_SHORT)
+                        .setAnchorView(binding.bottomNav)
+                        .setAction("Ver") {
+                            startActivity(Intent(this, CarritoActivity::class.java))
+                        }
+                        .show()
                 }
             }
         )
@@ -278,11 +284,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun actualizarBadgeCarrito() {
+    private fun actualizarBadgeCarrito(animar: Boolean = false) {
         val cant = CarritoManager.getCantidadTotal()
         if (cant > 0) {
             binding.tvCarritoBadge.visibility = View.VISIBLE
             binding.tvCarritoBadge.text = cant.toString()
+            if (animar) {
+                binding.tvCarritoBadge.animate().cancel()
+                binding.tvCarritoBadge.scaleX = 0.7f
+                binding.tvCarritoBadge.scaleY = 0.7f
+                binding.tvCarritoBadge.animate()
+                    .scaleX(1.25f)
+                    .scaleY(1.25f)
+                    .setDuration(130)
+                    .withEndAction {
+                        binding.tvCarritoBadge.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(110)
+                            .start()
+                    }
+                    .start()
+            }
         } else {
             binding.tvCarritoBadge.visibility = View.GONE
         }

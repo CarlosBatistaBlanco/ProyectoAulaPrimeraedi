@@ -1,11 +1,15 @@
 package com.tecniservicios.tecnisecure.ui.catalogo
 
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.tecniservicios.tecnisecure.R
+import com.tecniservicios.tecnisecure.data.local.SessionManager
 import com.tecniservicios.tecnisecure.data.model.Producto
 import com.tecniservicios.tecnisecure.databinding.ItemProductoBinding
 import java.text.NumberFormat
@@ -34,7 +38,13 @@ class ProductoAdapter(
     override fun getItemCount(): Int = lista.size
 
     inner class ProductoViewHolder(private val binding: ItemProductoBinding) : RecyclerView.ViewHolder(binding.root) {
+        private var resetRunnable: Runnable? = null
+
         fun bind(producto: Producto) {
+            val context = binding.root.context
+            resetRunnable?.let { binding.btnAgregarCarrito.removeCallbacks(it) }
+            restaurarBotonAgregar(context)
+
             val formatoPesos = NumberFormat.getCurrencyInstance(Locale("es", "CO"))
             formatoPesos.maximumFractionDigits = 0
 
@@ -57,13 +67,13 @@ class ProductoAdapter(
                 if (producto.imagen.startsWith("http://") || producto.imagen.startsWith("https://")) {
                     producto.imagen
                 } else {
-                    val baseUrl = com.tecniservicios.tecnisecure.data.local.SessionManager(binding.root.context).getBaseUrl()
+                    val baseUrl = SessionManager(context).getBaseUrl()
                     "${baseUrl.trimEnd('/')}/${producto.imagen.removePrefix("/")}"
                 }
             } else null
 
             if (!urlImagen.isNullOrEmpty()) {
-                Glide.with(binding.root.context)
+                Glide.with(context)
                     .load(urlImagen)
                     .fitCenter()
                     .placeholder(android.R.drawable.ic_menu_gallery)
@@ -77,9 +87,58 @@ class ProductoAdapter(
                 onProductoClick(producto)
             }
 
-            binding.btnAgregarCarrito.setOnClickListener {
+            binding.btnAgregarCarrito.setOnClickListener { btn ->
+                btn.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                if ((producto.stock ?: 0) > 0) {
+                    mostrarConfirmacionEnBoton(context)
+                } else {
+                    btn.animate()
+                        .translationX(-8f)
+                        .setDuration(60)
+                        .withEndAction {
+                            btn.animate().translationX(0f).setDuration(80).start()
+                        }
+                        .start()
+                }
                 onAgregarClick(producto)
             }
+        }
+
+        private fun mostrarConfirmacionEnBoton(context: android.content.Context) {
+            val btn = binding.btnAgregarCarrito
+            resetRunnable?.let { btn.removeCallbacks(it) }
+
+            btn.backgroundTintList = ContextCompat.getColorStateList(context, R.color.verde_exito)
+            btn.setIconResource(R.drawable.ic_check)
+
+            btn.animate().cancel()
+            btn.scaleX = 0.82f
+            btn.scaleY = 0.82f
+            btn.animate()
+                .scaleX(1.15f)
+                .scaleY(1.15f)
+                .setDuration(140)
+                .setInterpolator(OvershootInterpolator())
+                .withEndAction {
+                    btn.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(120)
+                        .start()
+                }
+                .start()
+
+            val runnable = Runnable { restaurarBotonAgregar(context) }
+            resetRunnable = runnable
+            btn.postDelayed(runnable, 1100L)
+        }
+
+        private fun restaurarBotonAgregar(context: android.content.Context) {
+            binding.btnAgregarCarrito.backgroundTintList =
+                ContextCompat.getColorStateList(context, R.color.cian_primario)
+            binding.btnAgregarCarrito.setIconResource(android.R.drawable.ic_input_add)
+            binding.btnAgregarCarrito.scaleX = 1f
+            binding.btnAgregarCarrito.scaleY = 1f
         }
     }
 }

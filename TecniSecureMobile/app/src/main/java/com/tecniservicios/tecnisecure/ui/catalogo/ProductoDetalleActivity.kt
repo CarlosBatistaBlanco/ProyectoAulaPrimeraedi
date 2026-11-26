@@ -1,10 +1,14 @@
 package com.tecniservicios.tecnisecure.ui.catalogo
 
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.tecniservicios.tecnisecure.R
 import com.tecniservicios.tecnisecure.data.local.CarritoManager
+import com.tecniservicios.tecnisecure.data.local.SessionManager
 import com.tecniservicios.tecnisecure.data.model.Producto
 import com.tecniservicios.tecnisecure.databinding.ActivityProductoDetalleBinding
 import java.text.NumberFormat
@@ -28,6 +32,7 @@ class ProductoDetalleActivity : AppCompatActivity() {
             finish()
         }
 
+        @Suppress("DEPRECATION")
         producto = intent.getSerializableExtra(EXTRA_PRODUCTO) as? Producto
         if (producto == null) {
             Toast.makeText(this, "Producto no encontrado", Toast.LENGTH_SHORT).show()
@@ -37,10 +42,35 @@ class ProductoDetalleActivity : AppCompatActivity() {
 
         mostrarDetalles(producto!!)
 
-        binding.btnDetalleAgregar.setOnClickListener {
-            CarritoManager.agregar(producto!!)
-            Toast.makeText(this, "¡${producto!!.nombre} añadido al carrito!", Toast.LENGTH_SHORT).show()
-            finish()
+        binding.btnDetalleAgregar.setOnClickListener { btn ->
+            val p = producto ?: return@setOnClickListener
+            btn.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            if ((p.stock ?: 0) <= 0) {
+                Toast.makeText(this, "Producto agotado temporalmente", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            CarritoManager.agregar(p)
+            binding.btnDetalleAgregar.isEnabled = false
+            binding.btnDetalleAgregar.text = "Agregado al carrito"
+            binding.btnDetalleAgregar.setIconResource(R.drawable.ic_check)
+            binding.btnDetalleAgregar.backgroundTintList =
+                ContextCompat.getColorStateList(this, R.color.verde_exito)
+
+            btn.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction {
+                    btn.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+                }
+                .start()
+
+            btn.postDelayed({
+                if (!isFinishing && !isDestroyed) {
+                    finish()
+                }
+            }, 550L)
         }
     }
 
@@ -59,7 +89,7 @@ class ProductoDetalleActivity : AppCompatActivity() {
             if (p.imagen.startsWith("http://") || p.imagen.startsWith("https://")) {
                 p.imagen
             } else {
-                val baseUrl = com.tecniservicios.tecnisecure.data.local.SessionManager(this).getBaseUrl()
+                val baseUrl = SessionManager(this).getBaseUrl()
                 "${baseUrl.trimEnd('/')}/${p.imagen.removePrefix("/")}"
             }
         } else null
