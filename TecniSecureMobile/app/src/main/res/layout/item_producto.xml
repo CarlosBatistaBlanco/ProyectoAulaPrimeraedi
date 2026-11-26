@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/borde_suave"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="@color/card_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <!-- Imagen del Producto -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="@color/white">
+
+            <ImageView
+                android:id="@+id/ivProducto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:contentDescription="Foto del producto" />
+
+            <!-- Badge Descuento -->
+            <TextView
+                android:id="@+id/tvBadgeDescuento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/naranja_alerta"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:text="-15%"
+                android:visibility="gone" />
+
+            <!-- Badge Stock -->
+            <TextView
+                android:id="@+id/tvStock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#D1FAE5"
+                android:textColor="#065F46"
+                android:textSize="9sp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="6dp"
+                android:text="Stock: 12" />
+        </FrameLayout>
+
+        <!-- Categoría / Marca -->
+        <TextView
+            android:id="@+id/tvCategoriaMarca"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CCTV · Hikvision"
+            android:textSize="10sp"
+            android:textColor="@color/texto_secundario"
+            android:layout_marginTop="6dp" />
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/tvNombreProducto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cámara Domo IP 4MP IR 30m"
+            android:textColor="@color/texto_principal"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="2dp" />
+
+        <!-- Precio -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/tvPrecio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="$185.000"
+                android:textColor="@color/cian_primario"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarCarrito"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:cornerRadius="18dp"
+                android:backgroundTint="@color/cian_primario" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

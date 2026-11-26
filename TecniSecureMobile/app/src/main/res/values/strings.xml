@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">TecniSecure</string>
+    <string name="subtitulo_app">Seguridad Electrónica y Servicios Técnicos</string>
+    <string name="institucion">UNICOLOMBO · Facultad de Ingeniería</string>
+    <string name="autor">Leonardo Martínez Santander</string>
+    
+    <string name="iniciar_sesion">Iniciar Sesión</string>
+    <string name="registrarse">Crear Cuenta</string>
+    <string name="correo">Correo Electrónico</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="captcha_hint">Resultado del desafío matemático</string>
+    
+    <string name="catalogo">Catálogo de Equipos</string>
+    <string name="servicios">Servicios Técnicos</string>
+    <string name="mis_pedidos">Mis Pedidos</string>
+    <string name="mis_direcciones">Direcciones de Entrega</string>
+    <string name="tareas_tecnicas">Tareas Operativas v2.0</string>
+    <string name="asistente_ia">Asistente Virtual DeepSeek</string>
+    <string name="carrito">Carrito de Compras</string>
+    <string name="cerrar_sesion">Cerrar Sesión</string>
+</resources>

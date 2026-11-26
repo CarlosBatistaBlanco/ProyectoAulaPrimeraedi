@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.TecniSecure" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/cian_primario</item>
+        <item name="colorPrimaryVariant">@color/azul_oscuro</item>
+        <item name="colorSecondary">@color/cian_brillante</item>
+        <item name="android:statusBarColor">@color/azul_oscuro</item>
+        <item name="android:windowBackground">@color/bg_fondo</item>
+        <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
+    </style>
+</resources>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_fondo">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarAsistente"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/azul_oscuro"
+        app:title="Asistente y Soporte en Vivo"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@android:drawable/ic_menu_revert" />
+
+    <!-- Banner Estado de Conexión -->
+    <LinearLayout
+        android:id="@+id/layoutBannerEstado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="9dp"
+        android:background="#E0F2FE"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@android:drawable/ic_dialog_info"
+            app:tint="@color/cian_primario" />
+
+        <TextView
+            android:id="@+id/tvEstadoChat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="En línea · Consulta precios, garantías o habla con un asesor."
+            android:textSize="11sp"
+            android:textColor="@color/azul_oscuro"
+            android:layout_marginStart="8dp" />
+
+        <TextView
+            android:id="@+id/btnReiniciarChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nueva charla"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/cian_primario"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp" />
+    </LinearLayout>
+
+    <!-- Lista de Mensajes del Chat -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMensajesChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false" />
+
+    <!-- Sugerencias rápidas -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:background="@color/bg_fondo">
+
+        <LinearLayout
+            android:id="@+id/layoutSugerenciasChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- Input de Mensaje -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@color/card_bg"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/etMensajeChat"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:hint="Escribe tu pregunta o mensaje..."
+            android:textSize="13sp"
+            android:background="@drawable/bg_search_input"
+            android:paddingHorizontal="12dp" />
+
+        <ImageButton
+            android:id="@+id/btnEnviarMensaje"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:src="@android:drawable/ic_menu_send"
+            app:tint="@color/white"
+            android:background="@drawable/badge_circle"
+            android:backgroundTint="@color/cian_primario"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Enviar mensaje" />
+    </LinearLayout>
+
+</LinearLayout>

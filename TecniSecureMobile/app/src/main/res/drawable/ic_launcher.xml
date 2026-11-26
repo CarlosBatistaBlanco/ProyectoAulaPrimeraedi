@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Fondo Azul Noche -->
+    <path
+        android:fillColor="#070F1E"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- Escudo Cian TecniSecure -->
+    <path
+        android:fillColor="#006B85"
+        android:pathData="M54,18 L84,30 V56 C84,74 70,88 54,92 C38,88 24,74 24,56 V30 Z" />
+    <!-- Lente / Cámara Central -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M54,54m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" />
+    <path
+        android:fillColor="#070F1E"
+        android:pathData="M54,54m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+    <!-- Led REC Naranja Alerta -->
+    <path
+        android:fillColor="#FF5A36"
+        android:pathData="M68,36m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+</vector>

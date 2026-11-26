@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permisos de red requeridos para comunicarse con el backend Spring Boot -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TecniSecure"
+        android:usesCleartextTraffic="true">
+
+        <!-- Actividad Principal de Inicio y Login con CAPTCHA -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.auth.RegisterActivity" />
+        <activity android:name=".ui.main.MainActivity" />
+        <activity android:name=".ui.catalogo.ProductoDetalleActivity" />
+        <activity android:name=".ui.carrito.CarritoActivity" />
+        <activity android:name=".ui.pedidos.MisPedidosActivity" />
+        <activity android:name=".ui.tareas.TareasEmpleadoActivity" />
+        <activity android:name=".ui.direcciones.DireccionesActivity" />
+        <activity android:name=".ui.asistente.AsistenteIAActivity" />
+    </application>
+
+</manifest>

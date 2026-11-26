@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/borde_suave"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="@color/card_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvNumeroPedido"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Pedido #1042"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/azul_oscuro" />
+
+            <TextView
+                android:id="@+id/tvEstadoPedido"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONFIRMADO"
+                android:textStyle="bold"
+                android:textSize="10sp"
+                android:textColor="#059669"
+                android:background="#D1FAE5"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFechaPedido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fecha: 24/11/2026 14:32"
+            android:textSize="11sp"
+            android:textColor="@color/texto_secundario"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvDireccionPedido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Entrega: Cra 14 #32-15, Bocagrande"
+            android:textSize="12sp"
+            android:textColor="@color/texto_principal"
+            android:layout_marginTop="6dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/borde_suave"
+            android:layout_marginVertical="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvFacturaCufe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Factura Electrónica (CUFE SHA-384)"
+                    android:textSize="10sp"
+                    android:textColor="@color/cian_primario" />
+
+                <TextView
+                    android:id="@+id/tvTotalPedido"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$370.000"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/azul_oscuro" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerFactura"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Ver Factura"
+                android:textSize="11sp"
+                app:cornerRadius="6dp"
+                android:backgroundTint="@color/azul_oscuro" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

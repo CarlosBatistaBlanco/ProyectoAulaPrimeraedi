@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identidad Cromática Oficial TECNISECURE v2.0 -->
+    <color name="azul_oscuro">#070F1E</color>
+    <color name="azul_panel">#0D1A30</color>
+    <color name="azul_card">#132440</color>
+    <color name="cian_primario">#006B85</color>
+    <color name="cian_brillante">#00E5FF</color>
+    <color name="naranja_alerta">#FF5A36</color>
+    <color name="verde_exito">#10B981</color>
+    <color name="bg_fondo">#F5F9FD</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="texto_principal">#0F172A</color>
+    <color name="texto_secundario">#64748B</color>
+    <color name="borde_suave">#E2E8F0</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gris_badge">#F1F5F9</color>
+</resources>
