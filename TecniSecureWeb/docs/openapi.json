@@ -1,0 +1,3105 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "TECNISECURE API",
+    "description": "API REST de TECNISECURE (seguridad electrónica).\nArquitectura de tres capas + MVC con Spring Boot.\nAutenticación con JWT: usa /api/auth/login y luego el botón Authorize.\n",
+    "contact": {
+      "name": "TECNISECURE",
+      "email": "contacto@tecnicsecure.com"
+    },
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "2. Catalogo",
+      "description": "Productos, categorias, marcas y servicios"
+    },
+    {
+      "name": "5. Soporte",
+      "description": "Contacto, solicitudes de servicio, chat y notificaciones"
+    },
+    {
+      "name": "4. Inventario",
+      "description": "Existencias, alertas de stock minimo y kardex"
+    },
+    {
+      "name": "3. Pedidos",
+      "description": "Checkout, seguimiento y cambios de estado"
+    },
+    {
+      "name": "6. Reportes",
+      "description": "Ventas, inventario y productos mas vendidos (JSON, CSV, XML)"
+    },
+    {
+      "name": "1. Autenticacion",
+      "description": "Login JWT, registro, recuperacion y perfil"
+    },
+    {
+      "name": "7. Cliente",
+      "description": "Favoritos y resenas de productos"
+    }
+  ],
+  "paths": {
+    "/api/productos/{id}": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Detalle de un producto",
+        "operationId": "detalle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDetalle"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Actualizar producto (administrador o empleado)",
+        "operationId": "actualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDetalle"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Desactivar producto (administrador)",
+        "operationId": "eliminar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Datos del usuario autenticado",
+        "operationId": "yo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Actualizar el propio perfil",
+        "operationId": "actualizarPerfil",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerfilRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Listar solicitudes de servicio (administrador)",
+        "operationId": "solicitudes",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseSolicitudResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Solicitar cotizacion o cita tecnica (publico)",
+        "operationId": "solicitud",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/productos": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Listar productos (paginado, con busqueda y filtros)",
+        "operationId": "listar",
+        "parameters": [
+          {
+            "name": "texto",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idCategoria",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "idMarca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 12
+            }
+          },
+          {
+            "name": "orden",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "idProducto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseProductoResumen"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Crear producto (administrador o empleado)",
+        "operationId": "crear",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDetalle"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pedidos": {
+      "get": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Listar pedidos (administrador o empleado)",
+        "operationId": "listar_1",
+        "parameters": [
+          {
+            "name": "idCliente",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponsePedidoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Registrar un pedido (checkout del carrito)",
+        "operationId": "registrar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/marcas": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Listar marcas",
+        "operationId": "marcas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MarcaRequest"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Crear marca",
+        "operationId": "crearMarca",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventario/productos/{id}/movimientos": {
+      "post": {
+        "tags": [
+          "4. Inventario"
+        ],
+        "summary": "Registrar entrada, salida o ajuste de inventario",
+        "operationId": "registrar_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovimientoInventarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovimientoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/contactos": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Listar mensajes de contacto (administrador)",
+        "operationId": "contactos",
+        "parameters": [
+          {
+            "name": "soloNoLeidos",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseContactoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Enviar un mensaje de contacto (publico)",
+        "operationId": "contacto",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/contactos/{id}/respuesta": {
+      "post": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Responder un mensaje de contacto (administrador)",
+        "operationId": "responder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cliente/productos/{idProducto}/resenas": {
+      "get": {
+        "tags": [
+          "7. Cliente"
+        ],
+        "summary": "Resenas de un producto",
+        "operationId": "resenas",
+        "parameters": [
+          {
+            "name": "idProducto",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Resena"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "7. Cliente"
+        ],
+        "summary": "Resenar un producto (una vez por usuario)",
+        "operationId": "resenar",
+        "parameters": [
+          {
+            "name": "idProducto",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResenaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resena"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cliente/favoritos/{idProducto}": {
+      "post": {
+        "tags": [
+          "7. Cliente"
+        ],
+        "summary": "Agregar o quitar un producto de favoritos",
+        "operationId": "alternarFavorito",
+        "parameters": [
+          {
+            "name": "idProducto",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{idCliente}": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Conversacion de un cliente (administrador o empleado)",
+        "operationId": "conversacion",
+        "parameters": [
+          {
+            "name": "idCliente",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MensajeChatResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Responder en la conversacion de un cliente (administrador o empleado)",
+        "operationId": "responderChat",
+        "parameters": [
+          {
+            "name": "idCliente",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MensajeChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeChatResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/mi-conversacion": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Mi conversacion de chat (cliente)",
+        "operationId": "miConversacion",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MensajeChatResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Enviar mensaje en mi conversacion (cliente)",
+        "operationId": "enviarComoCliente",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MensajeChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeChatResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/categorias": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Listar categorias",
+        "operationId": "categorias",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoriaRequest"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Crear categoria",
+        "operationId": "crearCategoria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/restablecer": {
+      "post": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Restablecer la contrasena usando el token",
+        "operationId": "restablecer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestablecerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/registro": {
+      "post": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Registrar una cuenta de cliente",
+        "operationId": "registro",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistroRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Renovar el access token con el refresh token",
+        "operationId": "refrescar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/recuperar": {
+      "post": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Solicitar enlace de recuperacion de contrasena",
+        "operationId": "recuperar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecuperarRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Iniciar sesion y obtener tokens JWT",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes/{id}": {
+      "patch": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Asignar tecnico, estado y observaciones (administrador)",
+        "operationId": "gestionar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pedidos/{id}/estado": {
+      "patch": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Cambiar el estado de un pedido (administrador o empleado)",
+        "operationId": "cambiarEstado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambioEstadoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notificaciones/leidas": {
+      "patch": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Marcar todas mis notificaciones como leidas",
+        "operationId": "marcarLeidas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Listar servicios ofrecidos",
+        "operationId": "servicios",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reportes/ventas/export": {
+      "get": {
+        "tags": [
+          "6. Reportes"
+        ],
+        "summary": "Exportar ventas del periodo en CSV (abre en Excel)",
+        "operationId": "exportarCsv",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "formato",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "csv"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reportes/resumen": {
+      "get": {
+        "tags": [
+          "6. Reportes"
+        ],
+        "summary": "Resumen general del periodo (dashboard)",
+        "operationId": "resumen",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenReporte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reportes/productos-mas-vendidos": {
+      "get": {
+        "tags": [
+          "6. Reportes"
+        ],
+        "summary": "Productos mas vendidos",
+        "operationId": "masVendidos",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoVendido"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reportes/inventario/export": {
+      "get": {
+        "tags": [
+          "6. Reportes"
+        ],
+        "summary": "Exportar productos con stock bajo en CSV",
+        "operationId": "exportarInventario",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reportes/ingresos": {
+      "get": {
+        "tags": [
+          "6. Reportes"
+        ],
+        "summary": "Ingresos del periodo",
+        "operationId": "ingresos",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/productos/destacados": {
+      "get": {
+        "tags": [
+          "2. Catalogo"
+        ],
+        "summary": "Productos destacados para la portada",
+        "operationId": "destacados",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoResumen"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pedidos/{id}": {
+      "get": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Detalle de un pedido",
+        "operationId": "obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pedidos/{id}/historial": {
+      "get": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Historial de cambios de estado de un pedido",
+        "operationId": "historial",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PedidoHistorial"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pedidos/mis-pedidos": {
+      "get": {
+        "tags": [
+          "3. Pedidos"
+        ],
+        "summary": "Mis pedidos (cliente autenticado)",
+        "operationId": "misPedidos",
+        "parameters": [
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponsePedidoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notificaciones": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Mis notificaciones",
+        "operationId": "notificaciones",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notificaciones/sin-leer": {
+      "get": {
+        "tags": [
+          "5. Soporte"
+        ],
+        "summary": "Cantidad de notificaciones sin leer",
+        "operationId": "sinLeer",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventario": {
+      "get": {
+        "tags": [
+          "4. Inventario"
+        ],
+        "summary": "Existencias de todos los productos",
+        "operationId": "todos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KardexProducto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventario/stock-bajo": {
+      "get": {
+        "tags": [
+          "4. Inventario"
+        ],
+        "summary": "Productos con stock igual o por debajo del minimo",
+        "operationId": "stockBajo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KardexProducto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventario/productos/{id}/kardex": {
+      "get": {
+        "tags": [
+          "4. Inventario"
+        ],
+        "summary": "Kardex (historial) de un producto",
+        "operationId": "kardex",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MovimientoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventario/movimientos": {
+      "get": {
+        "tags": [
+          "4. Inventario"
+        ],
+        "summary": "Ultimos 50 movimientos de inventario",
+        "operationId": "ultimosMovimientos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MovimientoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cliente/favoritos": {
+      "get": {
+        "tags": [
+          "7. Cliente"
+        ],
+        "summary": "Mis productos favoritos",
+        "operationId": "favoritos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/captcha": {
+      "get": {
+        "tags": [
+          "1. Autenticacion"
+        ],
+        "summary": "Generar la pregunta del captcha",
+        "operationId": "captcha",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProductoRequest": {
+        "required": [
+          "nombre",
+          "precio",
+          "stock"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "sku": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string"
+          },
+          "codigoBarras": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "minimum": 0.0,
+            "exclusiveMinimum": false,
+            "type": "number"
+          },
+          "descuentoPct": {
+            "maximum": 100.0,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": false,
+            "type": "number"
+          },
+          "impuestoPct": {
+            "maximum": 100.0,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": false,
+            "type": "number"
+          },
+          "garantiaMeses": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "stock": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMinimo": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMaximo": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "destacado": {
+            "type": "boolean"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idMarca": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Producto a crear o actualizar"
+      },
+      "ProductoDetalle": {
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "codigoBarras": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "precioFinal": {
+            "type": "number"
+          },
+          "descuentoPct": {
+            "type": "number"
+          },
+          "impuestoPct": {
+            "type": "number"
+          },
+          "garantiaMeses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMaximo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockBajo": {
+            "type": "boolean"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "imagenes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "destacado": {
+            "type": "boolean"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "idMarca": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "marca": {
+            "type": "string"
+          },
+          "calificacionPromedio": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalResenas": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PerfilRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "documento": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "passwordActual": {
+            "type": "string"
+          },
+          "passwordNueva": {
+            "type": "string"
+          }
+        }
+      },
+      "UsuarioResponse": {
+        "type": "object",
+        "properties": {
+          "idUsuario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "documento": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "bloqueado": {
+            "type": "boolean"
+          },
+          "ultimoAcceso": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Datos publicos del usuario autenticado"
+      },
+      "LocalTime": {
+        "type": "object",
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minute": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "second": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nano": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SolicitudRequest": {
+        "required": [
+          "correo",
+          "idServicio",
+          "nombre",
+          "telefono",
+          "tipo"
+        ],
+        "type": "object",
+        "properties": {
+          "idServicio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccion": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "fechaPreferida": {
+            "type": "string",
+            "format": "date"
+          },
+          "horaPreferida": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "descripcion": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "description": "Solicitud de cotizacion o cita tecnica"
+      },
+      "SolicitudResponse": {
+        "type": "object",
+        "properties": {
+          "idSolicitud": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idServicio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "servicio": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "fechaPreferida": {
+            "type": "string",
+            "format": "date"
+          },
+          "horaPreferida": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "tecnicoAsignado": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ItemCarrito": {
+        "required": [
+          "cantidad",
+          "idProducto"
+        ],
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidad": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Linea del carrito"
+      },
+      "PedidoRequest": {
+        "required": [
+          "carrito",
+          "correo",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccion": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "carrito": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemCarrito"
+            }
+          }
+        },
+        "description": "Checkout del carrito de compras"
+      },
+      "DetalleResponse": {
+        "type": "object",
+        "properties": {
+          "idDetalle": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "producto": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precioUnitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          }
+        }
+      },
+      "PedidoResponse": {
+        "type": "object",
+        "properties": {
+          "idPedido": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "idCliente": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clienteNombre": {
+            "type": "string"
+          },
+          "clienteCorreo": {
+            "type": "string"
+          },
+          "clienteTelefono": {
+            "type": "string"
+          },
+          "clienteDireccion": {
+            "type": "string"
+          },
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetalleResponse"
+            }
+          }
+        }
+      },
+      "MarcaRequest": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "MovimientoInventarioRequest": {
+        "required": [
+          "cantidad",
+          "tipo"
+        ],
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "cantidad": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "motivo": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          }
+        }
+      },
+      "MovimientoResponse": {
+        "type": "object",
+        "properties": {
+          "idMovimiento": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "producto": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockResultante": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "motivo": {
+            "type": "string"
+          },
+          "idUsuario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ContactoRequest": {
+        "required": [
+          "correo",
+          "mensaje",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "asunto": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "tipo": {
+            "pattern": "mensaje|reclamo|sugerencia",
+            "type": "string"
+          },
+          "mensaje": {
+            "maxLength": 4000,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "description": "Mensaje del formulario de contacto"
+      },
+      "ContactoResponse": {
+        "type": "object",
+        "properties": {
+          "idContacto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "asunto": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "respuesta": {
+            "type": "string"
+          },
+          "leido": {
+            "type": "boolean"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResenaRequest": {
+        "required": [
+          "calificacion"
+        ],
+        "type": "object",
+        "properties": {
+          "calificacion": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "comentario": {
+            "type": "string"
+          }
+        }
+      },
+      "Resena": {
+        "type": "object",
+        "properties": {
+          "idResena": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idUsuario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "calificacion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MensajeChatRequest": {
+        "required": [
+          "mensaje"
+        ],
+        "type": "object",
+        "properties": {
+          "mensaje": {
+            "type": "string"
+          }
+        }
+      },
+      "MensajeChatResponse": {
+        "type": "object",
+        "properties": {
+          "idMensaje": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idCliente": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remitente": {
+            "type": "string"
+          },
+          "idUsuarioEnvia": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "leido": {
+            "type": "boolean"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CategoriaRequest": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "RestablecerRequest": {
+        "required": [
+          "password",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "password": {
+            "pattern": "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+            "type": "string"
+          }
+        },
+        "description": "Restablecer contrasena con el token recibido"
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        }
+      },
+      "RegistroRequest": {
+        "required": [
+          "correo",
+          "documento",
+          "nombre",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "documento": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "password": {
+            "pattern": "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+            "type": "string"
+          }
+        },
+        "description": "Datos para crear una cuenta de cliente"
+      },
+      "RefreshRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "expiraEnSegundos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioResponse"
+          }
+        },
+        "description": "Tokens emitidos al iniciar sesion"
+      },
+      "RecuperarRequest": {
+        "required": [
+          "correo"
+        ],
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string"
+          }
+        },
+        "description": "Solicitud de recuperacion de contrasena"
+      },
+      "LoginRequest": {
+        "required": [
+          "correo",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "example": "admin@tecnicsecure.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "Admin123!"
+          }
+        },
+        "description": "Credenciales de inicio de sesion"
+      },
+      "SolicitudGestionRequest": {
+        "type": "object",
+        "properties": {
+          "tecnicoAsignado": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "estado": {
+            "pattern": "pendiente|contactado|agendado|completado|cancelado",
+            "type": "string"
+          }
+        }
+      },
+      "CambioEstadoRequest": {
+        "required": [
+          "estado"
+        ],
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string"
+          },
+          "observacion": {
+            "type": "string"
+          }
+        }
+      },
+      "PageResponseSolicitudResponse": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudResponse"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServicioResponse": {
+        "type": "object",
+        "properties": {
+          "idServicio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "icono": {
+            "type": "string"
+          },
+          "orden": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProductoVendido": {
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "unidades": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ingresos": {
+            "type": "number"
+          }
+        }
+      },
+      "ResumenReporte": {
+        "type": "object",
+        "properties": {
+          "desde": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hasta": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cantidadPedidos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ingresosPeriodo": {
+            "type": "number"
+          },
+          "ingresosHistoricos": {
+            "type": "number"
+          },
+          "productosActivos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "productosStockBajo": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuariosActivos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "solicitudesPendientes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensajesContactoSinLeer": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "masVendidos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoVendido"
+            }
+          }
+        }
+      },
+      "PageResponseProductoResumen": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoResumen"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProductoResumen": {
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "precioFinal": {
+            "type": "number"
+          },
+          "descuentoPct": {
+            "type": "number"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockBajo": {
+            "type": "boolean"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "destacado": {
+            "type": "boolean"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "marca": {
+            "type": "string"
+          }
+        }
+      },
+      "PageResponsePedidoResponse": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PedidoResponse"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PedidoHistorial": {
+        "type": "object",
+        "properties": {
+          "idHistorial": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idPedido": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estadoAnterior": {
+            "type": "string"
+          },
+          "estadoNuevo": {
+            "type": "string"
+          },
+          "idUsuario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificacionResponse": {
+        "type": "object",
+        "properties": {
+          "idNotificacion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "enlace": {
+            "type": "string"
+          },
+          "leida": {
+            "type": "boolean"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KardexProducto": {
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMaximo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockBajo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageResponseContactoResponse": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactoResponse"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "name": "bearerAuth",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

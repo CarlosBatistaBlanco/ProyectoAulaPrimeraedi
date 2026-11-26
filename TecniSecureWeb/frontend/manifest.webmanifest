@@ -1,0 +1,54 @@
+{
+  "id": "/",
+  "name": "TecniServicios — TECNISECURE",
+  "short_name": "TecniSecure",
+  "description": "Seguridad electrónica, cámaras CCTV, alarmas, control de acceso y gestión 24/7.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "browser",
+  "orientation": "portrait-primary",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "lang": "es-CO",
+  "categories": ["shopping", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Catálogo de Productos",
+      "short_name": "Productos",
+      "url": "/pages/productos.html",
+      "icons": [{ "src": "/img/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Iniciar Sesión",
+      "short_name": "Mi Cuenta",
+      "url": "/login.html",
+      "icons": [{ "src": "/img/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Solicitar Servicio",
+      "short_name": "Servicios",
+      "url": "/pages/solicitar-servicio.html",
+      "icons": [{ "src": "/img/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

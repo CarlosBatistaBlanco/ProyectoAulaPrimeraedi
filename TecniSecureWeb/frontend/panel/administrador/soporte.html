@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de Atención al cliente dentro del panel del administrador.
+  Desde aquí se atienden las solicitudes de cotización o citas técnicas y los mensajes recibidos
+  desde el formulario de contacto, permitiendo asignar técnicos, cambiar estados y responder a cada persona.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, diseño del panel, colores y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atención al cliente | TECNISECURE</title>
+<link rel="icon" href="../../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/validaciones.css">
+<link rel="stylesheet" href="../../css/auth.css">
+<link rel="stylesheet" href="../../css/panel.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="panel-body" data-rol="administrador">
+<div class="panel-layout">
+
+  <!-- Menú lateral para moverse entre las secciones del panel del administrador -->
+  <aside class="panel-sidebar" id="panelSidebar">
+    <a href="../../index.html" class="panel-sidebar__logo logo">
+      <img src="../../img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="../../img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+<nav class="panel-menu">
+    <span class="panel-menu__seccion">Principal</span>
+    <a href="index.html" class="panel-menu__item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a href="usuarios.html" class="panel-menu__item"><i class="fa-solid fa-users"></i> Usuarios</a>
+    <a href="perfil.html" class="panel-menu__item"><i class="fa-solid fa-user"></i> Mi perfil</a>
+    <a href="direcciones.html" class="panel-menu__item"><i class="fa-solid fa-location-dot"></i> Dirección</a>
+    <span class="panel-menu__seccion">Operación</span>
+    <a href="empleados.html" class="panel-menu__item"><i class="fa-solid fa-id-badge"></i> Empleados</a>
+    <a href="tareas.html" class="panel-menu__item"><i class="fa-solid fa-list-check"></i> Tareas y Desempeño</a>
+    <a href="clientes.html" class="panel-menu__item"><i class="fa-solid fa-user-tie"></i> Clientes</a>
+    <a href="productos.html" class="panel-menu__item"><i class="fa-solid fa-box"></i> Productos</a>
+    <a href="inventario.html" class="panel-menu__item"><i class="fa-solid fa-warehouse"></i> Inventario</a>
+    <a href="pedidos.html" class="panel-menu__item"><i class="fa-solid fa-cart-shopping"></i> Pedidos</a>
+    <a href="facturacion.html" class="panel-menu__item"><i class="fa-solid fa-file-invoice"></i> Facturación</a>
+    <span class="panel-menu__seccion">Análisis</span>
+    <a href="reportes.html" class="panel-menu__item"><i class="fa-solid fa-chart-line"></i> Reportes</a>
+    <a href="soporte.html" class="panel-menu__item"><i class="fa-solid fa-headset"></i> Atención al cliente</a>
+    <a href="chat.html" class="panel-menu__item"><i class="fa-solid fa-comments"></i> Chat con clientes</a>
+    <a href="auditoria.html" class="panel-menu__item"><i class="fa-solid fa-clipboard-list"></i> Auditoría</a>
+    <a href="respaldo.html" class="panel-menu__item"><i class="fa-solid fa-database"></i> Respaldo de BD</a>
+</nav>
+  </aside>
+  <div class="panel-overlay" id="panelOverlay"></div>
+
+  <div class="panel-contenido">
+    <!-- Barra superior del panel con el título de la sección, cambio de tema, notificaciones y cierre de sesión -->
+    <header class="panel-topbar">
+      <button class="panel-toggle" id="panelToggle" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="panel-topbar__titulo">Atención al cliente</h1>
+      <div class="panel-topbar__usuario">
+        <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="panel-notificaciones">
+          <button class="panel-noti-btn" id="botonNotificaciones" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="panel-noti-contador" id="notificacionesContador" style="display:none">0</span>
+          </button>
+          <div class="panel-noti-dropdown" id="dropdownNotificaciones">
+            <div class="panel-noti-dropdown__header">
+              <span>Notificaciones</span>
+              <a href="#" id="marcarNotificaciones">Marcar todas como leídas</a>
+            </div>
+            <ul id="listaNotificaciones">
+              <li class="vacio">Cargando notificaciones…</li>
+            </ul>
+          </div>
+        </div>
+
+        <span class="panel-topbar__nombre"><span data-nombre-usuario>…</span>
+          <small data-rol-usuario></small>
+        </span>
+        <div class="panel-avatar" data-avatar-usuario>·</div>
+        <a href="#" class="panel-logout" title="Cerrar sesión" onclick="cerrarSesionPanel(); return false;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <main class="panel-main">
+<!-- Tabla con las solicitudes de servicio técnico y acceso rápido al chat en vivo con clientes -->
+<div class="panel-box">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+    <h2 class="panel-box__titulo" style="margin:0;"><i class="fa-solid fa-headset"></i> Solicitudes de servicio técnico</h2>
+    <a href="chat.html" class="btn btn--primario" style="padding:7px 14px; font-size:.85rem;">
+      <i class="fa-solid fa-comments"></i> Ir al Chat en Vivo
+    </a>
+  </div>
+  <div class="panel-tabla-wrap">
+    <table class="panel-tabla">
+      <thead><tr><th>#</th><th>Servicio</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Técnico</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaSolicitudes"><tr><td colspan="7">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Tabla con los mensajes, reclamos y sugerencias enviados desde el formulario de contacto -->
+<div class="panel-box" id="contactos">
+  <h2 class="panel-box__titulo"><i class="fa-solid fa-envelope"></i> Mensajes de contacto</h2>
+  <div class="panel-tabla-wrap">
+    <table class="panel-tabla">
+      <thead><tr><th>#</th><th>Nombre</th><th>Correo</th><th>Asunto</th><th>Tipo</th><th>Fecha y hora</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaContactos"><tr><td colspan="7">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Ventana emergente para asignar un técnico, actualizar el estado y dejar observaciones en una solicitud -->
+<div class="modal-overlay" id="modalGestionSolicitud">
+  <div class="modal-caja">
+    <h3 id="tituloModalSolicitud"><i class="fa-solid fa-wrench"></i> Gestionar solicitud</h3>
+    <form id="formGestionSolicitud" class="panel-form">
+      <input type="hidden" name="idSolicitud">
+      <div class="campo">
+        <label>Técnico asignado</label>
+        <input type="text" name="tecnicoAsignado" maxlength="120" placeholder="Nombre del técnico responsable">
+      </div>
+      <div class="campo">
+        <label>Estado</label>
+        <select name="estado" required>
+          <option value="pendiente">Pendiente</option>
+          <option value="contactado">Contactado</option>
+          <option value="agendado">Agendado</option>
+          <option value="completado">Completado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+      <div class="campo campo--full">
+        <label>Observaciones técnicas</label>
+        <textarea name="observaciones" placeholder="Notas de seguimiento, fecha programada o diagnóstico…"></textarea>
+      </div>
+      <p id="respuestaSolicitudModal" class="form-respuesta campo--full"></p>
+      <div class="panel-form__acciones">
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalGestionSolicitud')">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Guardar gestión</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Ventana emergente para leer un mensaje recibido y enviar una respuesta al cliente -->
+<div class="modal-overlay" id="modalResponderContacto">
+  <div class="modal-caja">
+    <h3 id="tituloModalContacto"><i class="fa-solid fa-reply"></i> Responder mensaje</h3>
+    <form id="formResponderContacto" class="panel-form">
+      <input type="hidden" name="idContacto">
+      <div class="campo campo--full">
+        <label>Mensaje recibido</label>
+        <p id="textoContactoOriginal" style="color:var(--texto-tenue); font-size:.9rem; margin:4px 0 8px;"></p>
+      </div>
+      <div class="campo campo--full">
+        <label>Tu respuesta *</label>
+        <textarea name="respuesta" required placeholder="Escribe la respuesta para el usuario…"></textarea>
+      </div>
+      <p id="respuestaContactoModal" class="form-respuesta campo--full"></p>
+      <div class="panel-form__acciones">
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalResponderContacto')">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Enviar respuesta</button>
+      </div>
+    </form>
+  </div>
+</div>
+    </main>
+  </div>
+</div>
+
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: carga de solicitudes, respuestas a mensajes y controles del panel -->
+<script src="../../js/api.js"></script>
+<script src="../../js/validaciones.js"></script>
+<script src="../../js/websocket.js"></script>
+<script src="../../js/tema.js"></script>
+<script src="../../js/panel.js"></script>
+<script src="../../js/paginas-panel.js"></script>
+</body>
+</html>

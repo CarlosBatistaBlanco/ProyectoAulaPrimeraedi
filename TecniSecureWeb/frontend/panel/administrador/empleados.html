@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de Empleados dentro del panel del administrador.
+  Desde aquí se administran las cuentas del equipo de trabajo, se asigna el área de cada persona,
+  se eligen las secciones a las que puede entrar y se revisa su carga de tareas activas.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, diseño del panel, colores y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empleados | TECNISECURE</title>
+<link rel="icon" href="../../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/validaciones.css">
+<link rel="stylesheet" href="../../css/auth.css">
+<link rel="stylesheet" href="../../css/panel.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="panel-body" data-rol="administrador">
+<div class="panel-layout">
+
+  <!-- Menú lateral para moverse entre las secciones del panel del administrador -->
+  <aside class="panel-sidebar" id="panelSidebar">
+    <a href="../../index.html" class="panel-sidebar__logo logo">
+      <img src="../../img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="../../img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+<nav class="panel-menu">
+    <span class="panel-menu__seccion">Principal</span>
+    <a href="index.html" class="panel-menu__item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a href="usuarios.html" class="panel-menu__item"><i class="fa-solid fa-users"></i> Usuarios</a>
+    <a href="perfil.html" class="panel-menu__item"><i class="fa-solid fa-user"></i> Mi perfil</a>
+    <a href="direcciones.html" class="panel-menu__item"><i class="fa-solid fa-location-dot"></i> Dirección</a>
+    <span class="panel-menu__seccion">Operación</span>
+    <a href="empleados.html" class="panel-menu__item"><i class="fa-solid fa-id-badge"></i> Empleados</a>
+    <a href="tareas.html" class="panel-menu__item"><i class="fa-solid fa-list-check"></i> Tareas y Desempeño</a>
+    <a href="clientes.html" class="panel-menu__item"><i class="fa-solid fa-user-tie"></i> Clientes</a>
+    <a href="productos.html" class="panel-menu__item"><i class="fa-solid fa-box"></i> Productos</a>
+    <a href="inventario.html" class="panel-menu__item"><i class="fa-solid fa-warehouse"></i> Inventario</a>
+    <a href="pedidos.html" class="panel-menu__item"><i class="fa-solid fa-cart-shopping"></i> Pedidos</a>
+    <a href="facturacion.html" class="panel-menu__item"><i class="fa-solid fa-file-invoice"></i> Facturación</a>
+    <span class="panel-menu__seccion">Análisis</span>
+    <a href="reportes.html" class="panel-menu__item"><i class="fa-solid fa-chart-line"></i> Reportes</a>
+    <a href="soporte.html" class="panel-menu__item"><i class="fa-solid fa-headset"></i> Atención al cliente</a>
+    <a href="chat.html" class="panel-menu__item"><i class="fa-solid fa-comments"></i> Chat con clientes</a>
+    <a href="auditoria.html" class="panel-menu__item"><i class="fa-solid fa-clipboard-list"></i> Auditoría</a>
+    <a href="respaldo.html" class="panel-menu__item"><i class="fa-solid fa-database"></i> Respaldo de BD</a>
+</nav>
+  </aside>
+  <div class="panel-overlay" id="panelOverlay"></div>
+
+  <div class="panel-contenido">
+    <!-- Barra superior del panel con el título de la sección, cambio de tema, notificaciones y cierre de sesión -->
+    <header class="panel-topbar">
+      <button class="panel-toggle" id="panelToggle" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="panel-topbar__titulo">Empleados</h1>
+      <div class="panel-topbar__usuario">
+        <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="panel-notificaciones">
+          <button class="panel-noti-btn" id="botonNotificaciones" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="panel-noti-contador" id="notificacionesContador" style="display:none">0</span>
+          </button>
+          <div class="panel-noti-dropdown" id="dropdownNotificaciones">
+            <div class="panel-noti-dropdown__header">
+              <span>Notificaciones</span>
+              <a href="#" id="marcarNotificaciones">Marcar todas como leídas</a>
+            </div>
+            <ul id="listaNotificaciones">
+              <li class="vacio">Cargando notificaciones…</li>
+            </ul>
+          </div>
+        </div>
+
+        <span class="panel-topbar__nombre"><span data-nombre-usuario>…</span>
+          <small data-rol-usuario></small>
+        </span>
+        <div class="panel-avatar" data-avatar-usuario>·</div>
+        <a href="#" class="panel-logout" title="Cerrar sesión" onclick="cerrarSesionPanel(); return false;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <main class="panel-main">
+<!-- Tabla de empleados registrados con buscador, acceso directo a tareas y botón para crear un nuevo empleado -->
+<div class="panel-box" data-rol-fijo="empleado">
+  <h2 class="panel-box__titulo"><i class="fa-solid fa-id-badge"></i> Empleados, Áreas y Permisos</h2>
+  <div class="panel-toolbar">
+    <div class="panel-toolbar__filtros">
+      <input type="search" id="buscarUsuario" class="panel-toolbar__input" placeholder="Buscar empleado por nombre o correo…">
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="tareas.html" class="btn btn--secundario"><i class="fa-solid fa-list-check"></i> Gestionar Tareas</a>
+      <button type="button" class="btn btn--primario" id="btnNuevoUsuario">
+        <i class="fa-solid fa-user-plus"></i> Nuevo empleado
+      </button>
+    </div>
+  </div>
+  <div class="panel-tabla-wrap">
+    <table class="panel-tabla">
+      <thead><tr><th>Nombre</th><th>Correo</th><th>Documento</th><th>Rol</th><th>Estado</th><th>Registrado</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaUsuarios"><tr><td colspan="7">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Tabla resumen con el área de trabajo, los permisos activos, las tareas pendientes y el promedio de desempeño de cada empleado -->
+<div class="panel-box">
+  <h2 class="panel-box__titulo"><i class="fa-solid fa-shield-halved"></i> Roles internos y carga activa por empleado</h2>
+  <div class="panel-tabla-wrap">
+    <table class="panel-tabla">
+      <thead><tr><th>Empleado</th><th>Área</th><th>Módulos habilitados</th><th>Tareas activas</th><th>Calificación prom.</th><th>Configurar</th></tr></thead>
+      <tbody id="tablaPermisosEmpleados"><tr><td colspan="6">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Ventana emergente con el formulario para crear o editar la cuenta de un empleado -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal-caja modal-caja--ancha">
+    <h3 id="tituloModalUsuario"><i class="fa-solid fa-id-badge"></i> Empleado</h3>
+    <form id="formUsuario" class="panel-form">
+      <input type="hidden" name="idUsuario">
+      <div class="campo"><label>Nombre completo *</label><input type="text" name="nombre" required maxlength="120"></div>
+      <div class="campo"><label>Correo electrónico *</label><input type="email" name="correo" required maxlength="150"></div>
+      <div class="campo"><label>Documento</label><input type="text" name="documento" maxlength="30"></div>
+      <div class="campo"><label>Teléfono</label><input type="text" name="telefono" maxlength="30"></div>
+      <div class="campo">
+        <label>Rol *</label>
+        <select name="rol" required>
+          <option value="empleado">Empleado</option>
+          <option value="cliente">Cliente</option>
+          <option value="administrador">Administrador</option>
+        </select>
+      </div>
+      <div class="campo"><label id="etiquetaPasswordUsuario">Contraseña *</label><input type="password" name="password" minlength="6" maxlength="100"></div>
+      <div class="campo"><label class="panel-check"><input type="checkbox" name="activo" checked> Cuenta activa</label></div>
+      <div class="campo"><label class="panel-check"><input type="checkbox" name="bloqueado"> Cuenta bloqueada</label></div>
+      <p id="respuestaUsuario" class="form-respuesta campo--full"></p>
+      <div class="panel-form__acciones">
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalUsuario')">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Ventana emergente para elegir el área de trabajo, las secciones autorizadas y las actividades sugeridas del empleado -->
+<div class="modal-overlay" id="modalPermisosEmpleado">
+  <div class="modal-caja modal-caja--ancha">
+    <h3 id="tituloModalPermisos"><i class="fa-solid fa-shield-halved"></i> Área y permisos de módulo</h3>
+    <form id="formPermisosEmpleado" class="panel-form">
+      <input type="hidden" name="idUsuario">
+      <div class="campo campo--full">
+        <label>Área / Sub-rol del empleado *</label>
+        <select name="area" required>
+          <option value="ATENCION_CLIENTE">Atención al Cliente</option>
+          <option value="CONTABLE">Contable</option>
+          <option value="OPERATIVO">Operativo / Técnico</option>
+          <option value="SISTEMAS">Sistemas / TI</option>
+          <option value="ASESOR">Asesor Comercial</option>
+          <option value="VENTAS">Ventas</option>
+          <option value="MARKETING">Marketing</option>
+          <option value="MENSAJERO">Mensajero / Logística</option>
+          <option value="GERENTE">Gerente</option>
+        </select>
+      </div>
+      <div class="campo campo--full">
+        <label>Módulos autorizados en su panel lateral</label>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:6px;">
+          <label class="panel-check"><input type="checkbox" name="modulos" value="ventas"> Registrar venta</label>
+          <label class="panel-check"><input type="checkbox" name="modulos" value="pedidos"> Pedidos</label>
+          <label class="panel-check"><input type="checkbox" name="modulos" value="inventario"> Inventario</label>
+          <label class="panel-check"><input type="checkbox" name="modulos" value="productos"> Productos</label>
+          <label class="panel-check"><input type="checkbox" name="modulos" value="soporte"> Soporte</label>
+          <label class="panel-check"><input type="checkbox" name="modulos" value="chat"> Chat clientes</label>
+        </div>
+        <small style="color:var(--texto-tenue); display:block; margin-top:6px;">Dashboard, Mis tareas y Mi perfil permanecen activos para todos los empleados.</small>
+      </div>
+      <div class="campo campo--full">
+        <label>Actividades operativas del área seleccionada</label>
+        <div id="previewActividadesRol" style="background:var(--azul-oscuro); border:1px solid var(--azul-acero); border-radius:8px; padding:10px 12px; font-size:.84rem; color:var(--texto-tenue);">
+          Selecciona un área para ver sus actividades…
+        </div>
+        <label class="panel-check" style="margin-top:8px;">
+          <input type="checkbox" name="asignarActividadesRol" checked>
+          Crear/asignar automáticamente estas actividades como tareas activas para el empleado
+        </label>
+      </div>
+      <p id="respuestaPermisosModal" class="form-respuesta campo--full"></p>
+      <div class="panel-form__acciones">
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalPermisosEmpleado')">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Guardar permisos</button>
+      </div>
+    </form>
+  </div>
+</div>
+    </main>
+  </div>
+</div>
+
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: gestión de empleados, permisos, tareas y controles del panel -->
+<script src="../../js/api.js"></script>
+<script src="../../js/validaciones.js"></script>
+<script src="../../js/websocket.js"></script>
+<script src="../../js/tema.js"></script>
+<script src="../../js/panel.js"></script>
+<script src="../../js/paginas-panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de aviso que aparece cuando no hay conexión a internet.
+  Se muestra automáticamente si una persona intenta abrir la aplicación sin señal
+  y ofrece un botón sencillo para volver a intentarlo apenas regrese el servicio.
+-->
+<html lang="es">
+<!-- Datos básicos y diseño integrado para que este aviso se vea bien incluso sin señal de internet -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a1628">
+  <title>Sin conexión | TECNISECURE</title>
+  <link rel="icon" href="/img/logo/logo.svg" type="image/svg+xml">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #122b4a, #071120 75%);
+      color: #eaf6fb;
+      text-align: center;
+    }
+    .card {
+      max-width: 380px;
+      width: 100%;
+      background: rgba(13, 30, 54, 0.92);
+      border: 1px solid rgba(0, 229, 255, 0.28);
+      border-radius: 18px;
+      padding: 32px 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+    .card img {
+      width: 84px;
+      height: 84px;
+      border-radius: 18px;
+      margin-bottom: 18px;
+    }
+    h1 { font-size: 1.35rem; margin-bottom: 10px; color: #00e5ff; }
+    p { font-size: 0.95rem; line-height: 1.5; color: #b8d3e6; margin-bottom: 22px; }
+    button {
+      background: linear-gradient(135deg, #00e5ff, #0077b6);
+      color: #061321;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Tarjeta central que informa sobre la falta de conexión y muestra el botón para reintentar -->
+  <main class="card">
+    <img src="/img/icons/icon-192.png" alt="TECNISECURE">
+    <h1>Sin conexión a internet</h1>
+    <p>No pudimos conectar con el servidor de TecniServicios. Verifica tus datos móviles o Wi-Fi e intenta de nuevo.</p>
+    <button type="button" onclick="window.location.reload()">Reintentar conexión</button>
+  </main>
+</body>
+</html>

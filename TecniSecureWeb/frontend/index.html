@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla principal que ven las personas apenas entran al sitio web.
+  Aquí se presenta la empresa, sus servicios de seguridad, los productos destacados
+  y los accesos rápidos al catálogo, al carrito, al chat de ayuda y al inicio de sesión.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, colores, diseño visual y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TECNISECURE | Seguridad Electrónica y Cámaras</title>
+<meta name="description" content="TECNISECURE: instalación de cámaras de seguridad, alarmas, control de acceso y monitoreo 24/7.">
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/asistente.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body>
+<!-- Franja superior con el teléfono, el correo de contacto y los enlaces a redes sociales -->
+<div class="top-bar">
+  <div class="contenedor top-bar__inner">
+    <div class="top-bar__contacto">
+      <span><i class="fa-solid fa-phone"></i> +57 300 123 4567</span>
+      <span><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</span>
+    </div>
+    <div class="top-bar__redes">
+      <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://wa.me/573001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+      <a href="https://tiktok.com" target="_blank" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- Menú principal de navegación con el logotipo, accesos al catálogo, lista de compras, carrito, cambio de tema e inicio de sesión -->
+<header class="nav-principal" id="navPrincipal">
+  <div class="contenedor nav-principal__inner">
+    <a href="index.html#inicio" class="logo">
+      <img src="img/logo/logo-claro.svg" alt="Logo TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="Logo TECNISECURE" class="logo__oscuro">
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="menu" id="menuPrincipal">
+      <ul>
+        <li><a href="index.html#inicio">Inicio</a></li>
+        <li><a href="index.html#servicios">Servicios</a></li>
+        <li><a href="pages/productos.html">Productos</a></li>
+        <li><a href="pages/lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="index.html#contacto">Contacto</a></li>
+      </ul>
+      <a href="pages/lista_deseos.html" class="btn-deseos" id="btnAbrirDeseos" title="Mi Lista de Compras">
+        <i class="fa-solid fa-heart"></i>
+        <span class="deseos-contador" id="deseosContador">0</span>
+      </a>
+      <a href="pages/productos.html" class="btn-carrito" id="btnAbrirCarrito" title="Ver carrito">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="carrito-contador" id="carritoContador">0</span>
+      </a>
+
+      <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+
+      <a href="login.html" class="btn-cuenta" id="btnCuenta">
+        <i class="fa-solid fa-user"></i> Iniciar sesión
+      </a>
+    </nav>
+  </div>
+</header>
+
+
+
+<main>
+  <!-- Portada principal de bienvenida con botones rápidos para pedir una cotización o explorar productos -->
+  <section class="hero" id="inicio">
+    <!--
+         Video decorativo de fondo para la portada (opcional).
+         Si no hay video disponible, se muestra una imagen fija junto con la animación visual de cámaras.
+    -->
+    <video class="hero__video" autoplay muted loop playsinline poster="img/servicios/poster-hero.jpg"
+           data-video-opcional="video/encabezado.mp4"></video>
+
+    <!--
+         Animación decorativa que simula un centro de monitoreo con cámaras de seguridad.
+         Se oculta automáticamente cuando el video de fondo carga sin problemas.
+    -->
+    <div class="hero__monitor" aria-hidden="true">
+      <div class="monitor-grid">
+        <div class="monitor-cam monitor-cam--1"><span class="monitor-scan"></span></div>
+        <div class="monitor-cam monitor-cam--2"><span class="monitor-scan"></span></div>
+        <div class="monitor-cam monitor-cam--3"><span class="monitor-scan"></span></div>
+        <div class="monitor-cam monitor-cam--4"><span class="monitor-scan"></span></div>
+      </div>
+    </div>
+
+    <div class="hero__overlay"></div>
+
+    <!-- Marco decorativo que imita el visor de una cámara de vigilancia -->
+    <div class="hero__hud" aria-hidden="true">
+      <span class="hud-corner hud-corner--tl"></span>
+      <span class="hud-corner hud-corner--tr"></span>
+      <span class="hud-corner hud-corner--bl"></span>
+      <span class="hud-corner hud-corner--br"></span>
+      <div class="hud-rec"><span class="hud-rec__dot"></span> REC</div>
+      <div class="hud-clock" id="hudClock">00:00:00</div>
+      <div class="hud-tag">CAM 01 · ENTRADA PRINCIPAL</div>
+    </div>
+
+    <div class="contenedor hero__contenido">
+      <p class="hero__eyebrow">Vigilancia · Alarmas · Control de acceso</p>
+      <h1 class="hero__titulo">TECNI<span>SECURE</span></h1>
+      <p class="hero__subtitulo">Protegemos lo que más te importa con tecnología de video vigilancia, monitoreo 24/7 y soporte experto en toda la ciudad.</p>
+      <div class="hero__botones">
+        <a href="#contacto" class="btn btn--primario">Solicitar cotización</a>
+        <a href="pages/productos.html" class="btn btn--secundario">Ver productos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Franja con las garantías y beneficios principales que respaldan a la empresa -->
+  <section class="confianza">
+    <div class="contenedor confianza__grid">
+      <div><i class="fa-solid fa-shield-halved"></i><span>+500 instalaciones</span></div>
+      <div><i class="fa-solid fa-headset"></i><span>Soporte 24/7</span></div>
+      <div><i class="fa-solid fa-medal"></i><span>Garantía en equipos</span></div>
+      <div><i class="fa-solid fa-truck-fast"></i><span>Instalación rápida</span></div>
+    </div>
+  </section>
+
+  <!-- Sección donde se muestran automáticamente los servicios de seguridad disponibles -->
+  <section class="servicios" id="servicios">
+    <div class="contenedor">
+      <p class="seccion__eyebrow">Lo que hacemos</p>
+      <h2 class="seccion__titulo">Nuestros Servicios</h2>
+      <p class="seccion__descripcion">Soluciones completas de seguridad electrónica, diseñadas y ejecutadas por técnicos certificados.</p>
+
+      <div class="servicios__grid" id="listaServicios">
+        <p class="cargando">Cargando servicios…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección donde se presentan los equipos de seguridad más recomendados del catálogo -->
+  <section class="productos-destacados">
+    <div class="contenedor">
+      <p class="seccion__eyebrow">Equipos recomendados</p>
+      <h2 class="seccion__titulo">Productos Destacados</h2>
+
+      <div class="productos__grid" id="listaDestacados">
+        <p class="cargando">Cargando productos…</p>
+      </div>
+
+      <div class="ver-todos">
+        <a href="pages/productos.html" class="btn btn--secundario">Ver catálogo completo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección informativa sobre quiénes somos, nuestra experiencia y cifras clave -->
+  <section class="nosotros" id="nosotros">
+    <div class="contenedor nosotros__grid">
+      <div class="nosotros__texto">
+        <p class="seccion__eyebrow">Quiénes somos</p>
+        <h2 class="seccion__titulo">Expertos en Seguridad Electrónica</h2>
+        <p>En TECNISECURE diseñamos e instalamos sistemas de seguridad a la medida de cada cliente: hogares, oficinas, locales comerciales e industrias. Nuestro equipo técnico está certificado y disponible para brindar soporte cuando lo necesites.</p>
+        <ul class="nosotros__lista">
+          <li><i class="fa-solid fa-circle-check"></i> Técnicos certificados</li>
+          <li><i class="fa-solid fa-circle-check"></i> Equipos de marcas reconocidas</li>
+          <li><i class="fa-solid fa-circle-check"></i> Monitoreo remoto vía app</li>
+          <li><i class="fa-solid fa-circle-check"></i> Garantía y mantenimiento</li>
+        </ul>
+      </div>
+      <div class="nosotros__stats">
+        <div class="stat"><span class="stat__numero">10+</span><span>Años de experiencia</span></div>
+        <div class="stat"><span class="stat__numero">500+</span><span>Clientes satisfechos</span></div>
+        <div class="stat"><span class="stat__numero">24/7</span><span>Monitoreo activo</span></div>
+        <div class="stat"><span class="stat__numero">100%</span><span>Garantía en instalación</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de contacto con la ubicación en el mapa y el formulario para escribirnos -->
+  <section class="contacto" id="contacto">
+    <div class="contenedor contacto__grid">
+      <div class="contacto__info">
+        <p class="seccion__eyebrow">Hablemos</p>
+        <h2 class="seccion__titulo">Solicita tu Cotización</h2>
+        <p>Cuéntanos qué necesitas y un asesor te contactará el mismo día.</p>
+
+        <ul class="contacto__datos">
+          <li><i class="fa-solid fa-location-dot"></i> Cra. 10 #20-30, Cartagena, Colombia</li>
+          <li><i class="fa-solid fa-phone"></i> +57 300 123 4567</li>
+          <li><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</li>
+        </ul>
+
+        <iframe class="contacto__mapa" loading="lazy"
+          src="https://www.google.com/maps?q=Cartagena,Colombia&output=embed">
+        </iframe>
+      </div>
+
+      <!-- Formulario para que los visitantes soliciten cotizaciones o envíen mensajes, reclamos y sugerencias -->
+      <form class="contacto__form" id="formContacto" autocomplete="off">
+        <h3>Envíanos un mensaje</h3>
+
+        <div class="campo">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Ej: Ana Martínez">
+        </div>
+
+        <div class="campo">
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com">
+        </div>
+
+        <div class="campo">
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" placeholder="300 123 4567">
+        </div>
+
+        <div class="campo">
+          <label for="asunto">Asunto</label>
+          <select id="asunto" name="asunto">
+            <option value="Cotización de cámaras">Cotización de cámaras</option>
+            <option value="Cotización de alarmas">Cotización de alarmas</option>
+            <option value="Soporte técnico">Soporte técnico</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="tipo">Tipo de mensaje</label>
+          <select id="tipo" name="tipo">
+            <option value="mensaje">Mensaje general</option>
+            <option value="reclamo">Reclamo</option>
+            <option value="sugerencia">Sugerencia</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="mensaje">Mensaje</label>
+          <textarea id="mensaje" name="mensaje" rows="4" required placeholder="Cuéntanos qué necesitas..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn--primario btn--full">
+          <i class="fa-solid fa-paper-plane"></i> Enviar mensaje
+        </button>
+
+        <p class="form-respuesta" id="respuestaContacto"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- Pie de página con datos de la empresa, accesos rápidos, servicios y horarios de atención -->
+<footer class="footer" id="contacto-footer">
+  <div class="contenedor footer__grid">
+    <div class="footer__col">
+      <span class="logo">
+        <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="footer__logo logo__claro">
+        <img src="img/logo/logo.svg" alt="TECNISECURE" class="footer__logo logo__oscuro">
+      </span>
+      <p>Más de 10 años protegiendo hogares y negocios con tecnología de vigilancia confiable, monitoreo 24/7 y soporte técnico especializado.</p>
+      <div class="footer__redes">
+        <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+        <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://wa.me/573001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="https://tiktok.com" target="_blank" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+        <a href="https://youtube.com" target="_blank" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+
+    <div class="footer__col">
+      <h4>Enlaces</h4>
+      <ul>
+        <li><a href="index.html#inicio">Inicio</a></li>
+        <li><a href="index.html#servicios">Servicios</a></li>
+        <li><a href="pages/productos.html">Productos</a></li>
+        <li><a href="pages/lista_deseos.html">Lista de Compras</a></li>
+        <li><a href="index.html#nosotros">Nosotros</a></li>
+        <li><a href="index.html#contacto">Contacto</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4>Servicios</h4>
+      <ul>
+        <li>Instalación de cámaras CCTV</li>
+        <li>Monitoreo remoto 24/7</li>
+        <li>Alarmas y sensores</li>
+        <li>Control de acceso biométrico</li>
+        <li>Mantenimiento preventivo</li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4>Contáctanos</h4>
+      <ul class="footer__contacto">
+        <li><i class="fa-solid fa-location-dot"></i> Cra. 10 #20-30, Cartagena, Colombia</li>
+        <li><i class="fa-solid fa-phone"></i> +57 300 123 4567</li>
+        <li><i class="fa-solid fa-envelope"></i> contacto@tecnicsecure.com</li>
+        <li><i class="fa-solid fa-clock"></i> Lun - Sáb: 8:00 am - 6:00 pm</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <p>&copy; 2026 TECNISECURE. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<!-- Botón flotante para abrir una conversación directa por WhatsApp -->
+<a href="https://wa.me/573001234567" target="_blank" class="whatsapp-flotante" aria-label="Escríbenos por WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: catálogo, carrito, inicio de sesión, colores y asistente de ayuda -->
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/tema.js"></script>
+<script src="js/main.js"></script>
+<script src="js/catalogo.js"></script>
+<script src="js/carrito.js"></script>
+<script src="js/lista-deseos.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/asistente.js"></script>
+</body>
+</html>

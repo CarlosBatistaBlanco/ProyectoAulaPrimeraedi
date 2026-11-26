@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de Recuperar Contraseña en el acceso al sitio web.
+  Cualquier persona que olvidó su clave puede escribir aquí su correo electrónico
+  para recibir un enlace seguro que le permita crear una contraseña nueva.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, colores, diseño visual y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar contraseña | TECNISECURE</title>
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+  <!-- Encabezado con el logotipo de la empresa y el botón para cambiar entre modo claro y oscuro -->
+  <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:22px;">
+    <a href="index.html" class="auth-logo logo" style="margin-bottom:0;">
+      <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+    <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+  </div>
+  <!-- Tarjeta central con avisos útiles y el formulario para pedir la recuperación de contraseña -->
+  <div class="auth-card">
+  <div class="auth-alerta auth-alerta--info" id="enlaceRecuperacion" style="display:none">
+    <b>Modo de prueba (sin servidor de correo configurado):</b><br>
+    En un sitio en producción este enlace llegaría a tu correo. Por ahora, haz clic aquí para continuar:<br>
+    <a href="#" id="enlaceRestablecer">Restablecer mi contraseña</a>
+  </div>
+<h1 class="auth-titulo"><i class="fa-solid fa-key"></i> Recuperar contraseña</h1>
+<p class="auth-subtitulo">Escribe tu correo y te enviaremos un enlace para restablecerla.</p>
+
+<div class="auth-alerta auth-alerta--error"></div>
+<div class="auth-alerta auth-alerta--ok"></div>
+
+
+<!-- Formulario donde la persona escribe su correo electrónico para solicitar el enlace de recuperación -->
+<form action="#" method="POST" class="auth-form" id="formRecuperar">
+  
+  <div class="campo">
+    <label for="correo">Correo electrónico</label>
+    <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com" autofocus>
+  </div>
+  <button type="submit" class="btn btn--primario btn--full">
+    <i class="fa-solid fa-paper-plane"></i> Enviar enlace de recuperación
+  </button>
+  <p class="auth-pie"><a href="login.html">Volver a iniciar sesión</a></p>
+</form>
+  </div>
+  <p class="auth-volver"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver al sitio</a></p>
+</div>
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: validación del correo, solicitud del enlace y cambio de tema -->
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tema.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+/*
+ * Este archivo define el aspecto visual de la sección donde clientes, empleados y
+ * administradores guardan sus direcciones de entrega dentro de sus paneles.
+ * Da estilo a las tarjetas de cada dirección, la etiqueta de dirección principal
+ * y la ventana emergente para agregar o modificar un domicilio.
+ */
+
+/* Texto introductorio, botón de agregar y cuadrícula de tarjetas de direcciones */
+.direccion-ayuda {
+  color: var(--texto-tenue, #5a7086);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0 0 16px;
+  max-width: 620px;
+}
+
+.direccion-nueva { margin-bottom: 22px; }
+
+.direccion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+/* Tarjeta individual de dirección y resaltado para la dirección predeterminada */
+.direccion-card {
+  border: 1px solid var(--azul-acero, #d5e3f0);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--azul-panel, #ffffff);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.direccion-card:hover {
+  border-color: var(--cian, #006b85);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+.direccion-card--principal {
+  border-color: var(--cian, #006b85);
+  border-left: 4px solid var(--cian, #006b85);
+  background: rgba(0, 107, 133, 0.04);
+}
+
+/* Cabecera de la tarjeta: etiqueta ("Casa", "Oficina") y medalla de predeterminada */
+.direccion-card__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.direccion-card__cabecera h3 {
+  font-size: 1rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.direccion-card__cabecera h3 i { color: var(--cian, #006b85); }
+
+.direccion-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--cian, #006b85);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.direccion-card__pred {
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--texto-tenue, #5a7086);
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.direccion-card__pred:hover {
+  color: var(--cian, #006b85);
+  background: rgba(0, 107, 133, 0.1);
+}
+
+/* Datos de ubicación, destinatario, teléfono y punto de referencia */
+.direccion-card__texto {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 2px 0 0;
+  word-break: break-word;
+}
+
+.direccion-card__detalle {
+  font-size: 0.84rem;
+  color: var(--texto-tenue, #5a7086);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.direccion-card__ref {
+  font-size: 0.8rem;
+  color: var(--texto-tenue, #5a7086);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  padding: 6px 9px;
+  margin: 4px 0 0;
+  line-height: 1.4;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+/* Botones de Editar y Eliminar al pie de cada tarjeta */
+.direccion-card__acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--azul-acero, #d5e3f0);
+}
+
+.direccion-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--azul-acero, #d5e3f0);
+  color: var(--texto, #122536);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.direccion-btn:hover { background: var(--cian, #006b85); color: #ffffff; }
+.direccion-btn--peligro { color: #c83810; }
+.direccion-btn--peligro:hover { background: #c83810; color: #ffffff; }
+
+/* Mensaje centrado cuando el usuario todavía no guarda ninguna dirección */
+.direccion-vacia {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 46px 20px;
+  color: var(--texto-tenue, #5a7086);
+}
+.direccion-vacia i { font-size: 2.4rem; opacity: 0.35; display: block; margin-bottom: 12px; }
+.direccion-vacia p { margin: 0 0 4px; font-weight: 600; }
+.direccion-vacia small { font-size: 0.83rem; }
+
+/* --------------------------- Ventana emergente formulario ------------------------ */
+/* Ventana emergente para crear o editar una dirección */
+
+.direccion-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  padding: 20px;
+  overflow-y: auto;
+}
+.direccion-modal.activo { display: flex; }
+
+.direccion-modal__caja {
+  background: var(--azul-panel, #ffffff);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  padding: 26px;
+  position: relative;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: direccion-modal-entrar 0.24s ease;
+}
+@keyframes direccion-modal-entrar {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.direccion-modal__cerrar {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--texto-tenue, #5a7086);
+}
+.direccion-modal__cerrar:hover { color: #c83810; }
+
+.direccion-modal__titulo {
+  font-size: 1.12rem;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.direccion-modal__titulo i { color: var(--cian, #006b85); }
+
+/* Campos en dos columnas, casilla de predeterminada y botones de guardar/cancelar */
+.campo-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.direccion-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0 4px;
+  font-size: 0.86rem;
+  cursor: pointer;
+  color: var(--texto-tenue, #5a7086);
+}
+.direccion-check input { width: 17px; height: 17px; accent-color: var(--cian, #006b85); }
+
+.direccion-modal__acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.direccion-modal__acciones .btn { flex: 1; justify-content: center; }
+
+/* Adaptación para celulares: muestra una tarjeta por fila y apila botones */
+@media (max-width: 560px) {
+  .campo-doble { grid-template-columns: 1fr; }
+  .direccion-grid { grid-template-columns: 1fr; }
+  .direccion-modal__caja { padding: 20px; }
+  .direccion-modal__acciones { flex-direction: column-reverse; }
+}

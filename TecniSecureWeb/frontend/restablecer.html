@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla para elegir una Nueva Contraseña en el acceso al sitio web.
+  Aparece cuando la persona abre el enlace de recuperación que recibió en su correo
+  y le permite escribir y confirmar su nueva clave para volver a entrar a su cuenta.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, colores, diseño visual y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restablecer contraseña | TECNISECURE</title>
+<link rel="icon" href="img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/validaciones.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+  <!-- Encabezado con el logotipo de la empresa y el botón para cambiar entre modo claro y oscuro -->
+  <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:22px;">
+    <a href="index.html" class="auth-logo logo" style="margin-bottom:0;">
+      <img src="img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+    <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </div>
+  <!-- Tarjeta central con el formulario para guardar la nueva contraseña -->
+  <div class="auth-card">
+<h1 class="auth-titulo"><i class="fa-solid fa-lock-open"></i> Nueva contraseña</h1>
+<p class="auth-subtitulo">Escribe tu nueva contraseña.</p>
+  <div class="auth-alerta auth-alerta--error"></div>
+
+  <!-- Formulario donde la persona escribe y confirma su nueva contraseña de acceso -->
+  <form action="#" method="POST" class="auth-form" id="formRestablecer">
+    
+    
+
+    <div class="campo">
+      <label for="password">Nueva contraseña</label>
+      <div class="campo-password">
+        <input type="password" id="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número">
+        <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="password2">Confirmar contraseña</label>
+      <div class="campo-password">
+        <input type="password" id="password2" name="password2" required placeholder="Repite tu contraseña">
+        <button type="button" class="toggle-password" data-target="password2" aria-label="Mostrar u ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn--primario btn--full"><i class="fa-solid fa-check"></i> Guardar nueva contraseña</button>
+  </form>
+  </div>
+  <p class="auth-volver"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver al sitio</a></p>
+</div>
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: validación de la nueva clave, guardado y cambio de tema -->
+<script src="js/api.js"></script>
+<script src="js/validaciones.js"></script>
+<script src="js/auth-paginas.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tema.js"></script>
+</body>
+</html>

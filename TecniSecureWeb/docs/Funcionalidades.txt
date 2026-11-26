@@ -1,0 +1,36 @@
+1. API inteligente de inventario
+- Actualización automática de existencias al vender.
+- Alertas de stock mínimo.
+- Historial de entradas y salidas.
+- Consulta de disponibilidad en tiempo real.
+
+2. API de solicitudes de servicio técnico
+- Clientes solicitan instalaciones o reparaciones.
+- Asignación de técnicos.
+- Seguimiento del estado del servicio.
+- Historial de atención y observaciones.
+
+3. API de análisis y reportes
+- Productos más vendidos.
+- Ingresos por períodos.
+- Inventario disponible.
+- Rendimiento de ventas.
+- Generación de reportes PDF o Excel.
+
+4. API de autenticación y seguridad
+- Inicio de sesión mediante JWT.
+- Control de acceso por roles.
+- Protección de endpoints.
+- Renovación y expiración de tokens.
+
+5. API de seguimiento de pedidos
+- Consulta de pedidos.
+- Cambios de estado.
+- Historial de modificaciones.
+- Notificaciones al cliente.
+
+6. API de comunicación y soporte
+- Envío y consulta de mensajes.
+- Historial de conversaciones.
+- Notificaciones de respuestas.
+- Comunicación en tiempo real mediante WebSocket.

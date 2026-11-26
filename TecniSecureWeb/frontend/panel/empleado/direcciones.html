@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de Direcciones dentro del panel del empleado.
+  Desde aquí cada trabajador puede guardar y organizar sus direcciones de entrega personales,
+  editarlas cuando lo requiera y dejar marcada su dirección principal.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, diseño del panel, colores y formato para las tarjetas de direcciones -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dirección | TECNISECURE</title>
+<link rel="icon" href="../../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/validaciones.css">
+<link rel="stylesheet" href="../../css/auth.css">
+<link rel="stylesheet" href="../../css/panel.css">
+<link rel="stylesheet" href="../../css/direcciones.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="panel-body" data-rol="empleado">
+<div class="panel-layout">
+
+  <!-- Menú lateral para moverse entre las secciones del panel del empleado -->
+  <aside class="panel-sidebar" id="panelSidebar">
+    <a href="../../index.html" class="panel-sidebar__logo logo">
+      <img src="../../img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="../../img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+<nav class="panel-menu">
+    <span class="panel-menu__seccion">Principal</span>
+    <a href="index.html" class="panel-menu__item" data-modulo="dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a href="tareas.html" class="panel-menu__item" data-modulo="tareas"><i class="fa-solid fa-list-check"></i> Mis tareas</a>
+    <a href="perfil.html" class="panel-menu__item" data-modulo="perfil"><i class="fa-solid fa-user"></i> Mi perfil</a>
+    <a href="direcciones.html" class="panel-menu__item" data-modulo="direccion"><i class="fa-solid fa-location-dot"></i> Dirección</a>
+    <span class="panel-menu__seccion">Operación</span>
+    <a href="ventas.html" class="panel-menu__item" data-modulo="ventas"><i class="fa-solid fa-cash-register"></i> Registrar venta</a>
+    <a href="pedidos.html" class="panel-menu__item" data-modulo="pedidos"><i class="fa-solid fa-cart-shopping"></i> Pedidos</a>
+    <a href="facturacion.html" class="panel-menu__item" data-modulo="facturacion"><i class="fa-solid fa-file-invoice"></i> Facturación</a>
+    <a href="inventario.html" class="panel-menu__item" data-modulo="inventario"><i class="fa-solid fa-warehouse"></i> Inventario</a>
+    <a href="productos.html" class="panel-menu__item" data-modulo="productos"><i class="fa-solid fa-box"></i> Productos</a>
+    <a href="soporte.html" class="panel-menu__item" data-modulo="soporte"><i class="fa-solid fa-headset"></i> Soporte</a>
+    <a href="chat.html" class="panel-menu__item" data-modulo="chat"><i class="fa-solid fa-comments"></i> Chat clientes</a>
+</nav>
+  </aside>
+  <div class="panel-overlay" id="panelOverlay"></div>
+
+  <div class="panel-contenido">
+    <!-- Barra superior del panel con el título de la sección, cambio de tema, notificaciones y cierre de sesión -->
+    <header class="panel-topbar">
+      <button class="panel-toggle" id="panelToggle" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="panel-topbar__titulo">Dirección</h1>
+      <div class="panel-topbar__usuario">
+        <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="panel-notificaciones">
+          <button class="panel-noti-btn" id="botonNotificaciones" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="panel-noti-contador" id="notificacionesContador" style="display:none">0</span>
+          </button>
+          <div class="panel-noti-dropdown" id="dropdownNotificaciones">
+            <div class="panel-noti-dropdown__header">
+              <span>Notificaciones</span>
+              <a href="#" id="marcarNotificaciones">Marcar todas como leídas</a>
+            </div>
+            <ul id="listaNotificaciones">
+              <li class="vacio">Cargando notificaciones…</li>
+            </ul>
+          </div>
+        </div>
+
+        <span class="panel-topbar__nombre"><span data-nombre-usuario>…</span>
+          <small data-rol-usuario></small>
+        </span>
+        <div class="panel-avatar" data-avatar-usuario>·</div>
+        <a href="#" class="panel-logout" title="Cerrar sesión" onclick="cerrarSesionPanel(); return false;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <main class="panel-main">
+      <!-- Listado de direcciones guardadas con botón para agregar una nueva -->
+      <div class="panel-box">
+        <h2 class="panel-box__titulo"><i class="fa-solid fa-location-dot"></i> Direcciones de entrega</h2>
+        <p class="direccion-ayuda">
+          Guarda tus direcciones una vez y se rellenarán solas cuando vayas a pagar.
+          Puedes cambiarlas en el momento del pago si algo cambió.
+        </p>
+        <button type="button" class="btn btn--primario direccion-nueva" id="btnNuevaDireccion">
+          <i class="fa-solid fa-plus"></i> Agregar dirección
+        </button>
+        <div class="direccion-grid" id="listaDirecciones">
+          <p class="cargando">Cargando direcciones…</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Ventana emergente con el formulario para crear o editar una dirección de entrega -->
+<div class="direccion-modal" id="modalDireccion" role="dialog" aria-modal="true" aria-labelledby="tituloModalDireccion">
+  <div class="direccion-modal__caja">
+    <button type="button" class="direccion-modal__cerrar" id="cerrarModalDireccion" aria-label="Cerrar">&times;</button>
+    <h2 class="direccion-modal__titulo" id="tituloModalDireccion"><i class="fa-solid fa-location-dot"></i> Nueva dirección</h2>
+
+    <form id="formDireccion" autocomplete="off">
+      <div class="campo">
+        <label for="dirEtiqueta">Nombre de la dirección *</label>
+        <input type="text" id="dirEtiqueta" name="etiqueta" placeholder="Casa, Oficina, Bodega…" required maxlength="60">
+      </div>
+
+      <div class="campo">
+        <label for="dirDireccion">Dirección exacta *</label>
+        <input type="text" id="dirDireccion" name="direccion" placeholder="Ej. Calle 45 # 12-34, Bogotá" required minlength="8" maxlength="255">
+      </div>
+
+      <div class="campo-doble">
+        <div class="campo">
+          <label for="dirCiudad">Ciudad</label>
+          <input type="text" id="dirCiudad" name="ciudad" placeholder="Ej. Bogotá" maxlength="100">
+        </div>
+        <div class="campo">
+          <label for="dirBarrio">Barrio</label>
+          <input type="text" id="dirBarrio" name="barrio" placeholder="Ej. Chapinero" maxlength="100">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="dirNombreRecibe">Nombre de quien recibe</label>
+        <input type="text" id="dirNombreRecibe" name="nombreRecibe" placeholder="Opcional" maxlength="120">
+      </div>
+
+      <div class="campo">
+        <label for="dirTelefono">Teléfono de contacto</label>
+        <input type="tel" id="dirTelefono" name="telefono" placeholder="Ej. 300 123 4567">
+      </div>
+
+      <div class="campo">
+        <label for="dirReferencia">Referencia / indicaciones</label>
+        <input type="text" id="dirReferencia" name="referencia" placeholder="Ej. Torre 2, apto 501, portón negro" maxlength="255">
+      </div>
+
+      <label class="direccion-check">
+        <input type="checkbox" id="dirPredeterminada" name="predeterminada">
+        <span>Usar como dirección predeterminada</span>
+      </label>
+
+      <div class="direccion-modal__acciones">
+        <button type="button" class="btn btn--secundario" id="cancelarDireccion">Cancelar</button>
+        <button type="submit" class="btn btn--primario" id="guardarDireccion">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar dirección
+        </button>
+      </div>
+      <p class="form-respuesta" id="respuestaDireccion"></p>
+    </form>
+  </div>
+</div>
+
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: gestión de direcciones guardadas, notificaciones y controles del panel -->
+<script src="../../js/api.js"></script>
+<script src="../../js/validaciones.js"></script>
+<script src="../../js/websocket.js"></script>
+<script src="../../js/tema.js"></script>
+<script src="../../js/panel.js"></script>
+<script src="../../js/paginas-panel.js"></script>
+<script src="../../js/direcciones.js"></script>
+</body>
+</html>

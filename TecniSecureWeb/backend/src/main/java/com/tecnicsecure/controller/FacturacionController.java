@@ -1,0 +1,410 @@
+/*
+ * Este archivo atiende los botones de Ver Factura, Descargar, Enviar por Correo, Pagar Pedido
+ * y Emitir Nota Crédito en las pantallas de Pedidos y Facturación. Arma el comprobante formal
+ * con desglose de IVA del 19%, confirma pagos y devuelve existencias a bodega si se anula una factura.
+ */
+package com.tecnicsecure.controller;
+
+import com.tecnicsecure.dto.pedido.FacturaDetalleResponse;
+import com.tecnicsecure.dto.pedido.PedidoResponse;
+import com.tecnicsecure.entity.EstadoPedido;
+import com.tecnicsecure.entity.Factura;
+import com.tecnicsecure.entity.LogActividad;
+import com.tecnicsecure.exception.ApiException;
+import com.tecnicsecure.repository.FacturaRepository;
+import com.tecnicsecure.repository.LogActividadRepository;
+import com.tecnicsecure.service.EmailService;
+import com.tecnicsecure.service.InventarioService;
+import com.tecnicsecure.service.PedidoService;
+import com.tecnicsecure.util.UsuarioActual;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HexFormat;
+import java.util.Locale;
+import java.util.Map;
+
+@Tag(name = "3.1 Facturacion y Pagos", description = "Factura formal DIAN, notas credito, descarga individual y envio por correo")
+@RestController
+@RequestMapping("/api/pedidos")
+public class FacturacionController {
+
+    private final PedidoService pedidoService;
+    private final FacturaRepository facturaRepository;
+    private final LogActividadRepository logRepository;
+    private final UsuarioActual usuarioActual;
+    private final EmailService emailService;
+    private final InventarioService inventarioService;
+
+    // Conecta con los encargados de consultar pedidos, guardar facturas, enviar correos y devolver existencias
+    public FacturacionController(PedidoService pedidoService,
+                                 FacturaRepository facturaRepository,
+                                 LogActividadRepository logRepository,
+                                 UsuarioActual usuarioActual,
+                                 EmailService emailService,
+                                 InventarioService inventarioService) {
+        this.pedidoService = pedidoService;
+        this.facturaRepository = facturaRepository;
+        this.logRepository = logRepository;
+        this.usuarioActual = usuarioActual;
+        this.emailService = emailService;
+        this.inventarioService = inventarioService;
+    }
+
+    // Reúne todos los datos de la factura de un pedido: subtotal sin impuesto, IVA del 19%, total y código CUFE
+    @Operation(summary = "Consultar factura formal de un pedido (solo datos necesarios del comprador)")
+    @GetMapping("/{id}/factura")
+    @Transactional(readOnly = true)
+    public FacturaDetalleResponse obtenerFactura(@PathVariable Integer id) {
+        PedidoResponse pedido = pedidoService.obtener(id);
+        Factura factura = facturaRepository.findByIdPedido(id).orElse(null);
+
+        // Calcula el número del comprobante, el valor antes de IVA (dividiendo entre 1.19), el impuesto y la fecha
+        String numero = factura != null ? factura.getNumeroFactura() : String.format("FAC-%05d", id);
+        BigDecimal total = pedido.total() != null ? pedido.total() : BigDecimal.ZERO;
+        BigDecimal base = (factura != null && factura.getSubtotal() != null && factura.getSubtotal().compareTo(BigDecimal.ZERO) > 0)
+                ? factura.getSubtotal()
+                : total.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
+        BigDecimal iva = total.subtract(base).max(BigDecimal.ZERO);
+        BigDecimal descuento = factura != null && factura.getDescuento() != null ? factura.getDescuento() : BigDecimal.ZERO;
+        LocalDateTime fecha = factura != null && factura.getCreadoEn() != null ? factura.getCreadoEn() : pedido.creadoEn();
+        if (fecha == null) {
+            fecha = LocalDateTime.now();
+        }
+
+        // Genera el código único verificable de factura electrónica (CUFE) con los datos del comprobante
+        String cufe = calcularCufe(numero + "|" + id + "|" + total.toPlainString() + "|" + pedido.clienteCorreo());
+
+        // Arma la factura final con los datos legales de la empresa y únicamente los datos de este comprador
+        return new FacturaDetalleResponse(
+                factura != null ? factura.getIdFactura() : id,
+                id,
+                numero,
+                cufe,
+                factura != null ? factura.getEstado() : "emitida",
+                pedido.estado(),
+                fecha,
+                "TECNISERVICIOS & TECNOLOGIA TECNISECURE S.A.S.",
+                "901.456.789-2",
+                "Responsable de IVA - Regimen Comun",
+                "Resolucion DIAN No. 18764000001234 (Prefijo FAC del 1 al 100000)",
+                pedido.clienteNombre(),
+                pedido.clienteCorreo(),
+                pedido.clienteTelefono(),
+                pedido.clienteDireccion(),
+                pedido.metodoPago(),
+                base,
+                new BigDecimal("19.00"),
+                iva,
+                descuento,
+                total,
+                pedido.detalles()
+        );
+    }
+
+    // Descarga la factura lista para abrir en el navegador o imprimir en papel
+    @Operation(summary = "Descargar comprobante individual de factura en HTML imprimible")
+    @GetMapping("/{id}/factura/archivo")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> descargarFactura(@PathVariable Integer id) {
+        FacturaDetalleResponse fac = obtenerFactura(id);
+        byte[] bytes = construirDocumentoHtmlFactura(fac).getBytes(StandardCharsets.UTF_8);
+        // Pide al navegador guardar el archivo con el número de la factura (por ejemplo FAC-00001.html)
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fac.numeroFactura() + ".html\"")
+                .contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+                .body(bytes);
+    }
+
+    // Avisa al panel si el envío de correos electrónicos está encendido y listo para usarse (solo personal interno)
+    @Operation(summary = "Estado del servicio de correo (si esta listo para enviar)")
+    @GetMapping("/factura/correo-estado")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
+    public Map<String, Object> estadoCorreo() {
+        return emailService.estado();
+    }
+
+    // Envía el comprobante de factura a un correo electrónico escrito manualmente por el personal
+    @Operation(summary = "Enviar la factura al correo que se indique")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
+    @PostMapping("/{id}/enviar-factura-a")
+    public Map<String, String> enviarFacturaA(@PathVariable Integer id,
+                                             @jakarta.validation.Valid @RequestBody
+                                             com.tecnicsecure.dto.soporte.EnvioFacturaRequest peticion) {
+        FacturaDetalleResponse fac = obtenerFactura(id);
+        // La factura viaja directamente en el cuerpo visual del correo, sin archivos adjuntos
+        String htmlDoc = construirDocumentoHtmlFactura(fac);
+        return emailService.enviarCorreoConAdjunto(
+                peticion.correo(),
+                "Factura electronica " + fac.numeroFactura() + " - TECNISECURE",
+                htmlDoc,
+                null,
+                null,
+                fac.numeroFactura() + " | Pedido #" + id + " | Envio manual a " + peticion.correo());
+    }
+
+    // Envía la factura directamente al correo que registró el comprador del pedido (solo personal interno)
+    @Operation(summary = "Enviar unicamente esta factura individual por correo al cliente comprador")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','EMPLEADO')")
+    @PostMapping("/{id}/enviar-factura")
+    public Map<String, String> enviarFactura(@PathVariable Integer id) {
+        FacturaDetalleResponse fac = obtenerFactura(id);
+        // Revisa que el comprador tenga correo guardado antes de intentar el envío
+        if (!StringUtils.hasText(fac.clienteCorreo())) {
+            throw ApiException.badRequest("El cliente no tiene correo registrado");
+        }
+        // Envía la factura formateada dentro del mismo correo para que el cliente la lea de inmediato
+        String htmlDoc = construirDocumentoHtmlFactura(fac);
+        return emailService.enviarCorreoConAdjunto(
+                fac.clienteCorreo(),
+                "Factura electronica " + fac.numeroFactura() + " - TECNISECURE",
+                htmlDoc,
+                null,
+                null,
+                fac.numeroFactura() + " | Pedido #" + id + " | Total " + moneda(fac.total()));
+    }
+
+    // Registra el pago de un pedido, marca la factura como pagada y pasa la compra a estado confirmado
+    @Operation(summary = "Procesar pago del pedido mediante pasarela")
+    @PostMapping("/{id}/pagar")
+    @Transactional
+    public Map<String, Object> pagarPedido(@PathVariable Integer id, @RequestBody(required = false) Map<String, String> body) {
+        PedidoResponse pedido = pedidoService.obtener(id);
+        // Impide cobrar un pedido que ya fue cancelado
+        if (EstadoPedido.CANCELADO.equals(pedido.estado())) {
+            throw ApiException.badRequest("No se puede pagar un pedido cancelado");
+        }
+
+        // Toma el medio de pago seleccionado y crea un código de referencia único para el comprobante
+        String metodo = (body != null && StringUtils.hasText(body.get("metodo")))
+                ? body.get("metodo").trim()
+                : (StringUtils.hasText(pedido.metodoPago()) ? pedido.metodoPago() : "Transferencia / Tarjeta");
+        String referencia = "PAY-" + id + "-" + (System.currentTimeMillis() % 1000000);
+
+        // Evita cobrar dos veces o pagar una factura anulada; si aún no existe factura, la crea con IVA del 19%
+        Factura factura = facturaRepository.findByIdPedido(id).orElse(null);
+        if (factura != null) {
+            if ("pagada".equalsIgnoreCase(factura.getEstado())) {
+                throw ApiException.conflict("Este pedido ya fue pagado anteriormente (Factura " + factura.getNumeroFactura() + ")");
+            }
+            if ("nota_credito".equalsIgnoreCase(factura.getEstado())) {
+                throw ApiException.badRequest("No se puede pagar una factura anulada con nota crédito");
+            }
+        } else {
+            factura = new Factura();
+            factura.setIdPedido(id);
+            factura.setNumeroFactura(String.format("FAC-%05d", id));
+            BigDecimal total = pedido.total() != null ? pedido.total() : BigDecimal.ZERO;
+            BigDecimal base = total.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
+            factura.setSubtotal(base);
+            factura.setImpuestos(total.subtract(base));
+            factura.setTotal(total);
+        }
+        factura.setEstado("pagada");
+        facturaRepository.save(factura);
+
+        // Si el pedido seguía pendiente, lo avanza a confirmado dejando registrada la referencia del pago
+        String nuevoEstado = pedido.estado();
+        if (EstadoPedido.PENDIENTE.equals(pedido.estado())) {
+            var actualizado = pedidoService.cambiarEstado(
+                    id,
+                    EstadoPedido.CONFIRMADO,
+                    "Pago confirmado por " + metodo + " (Ref: " + referencia + ")",
+                    usuarioActual.idOpcional());
+            nuevoEstado = actualizado.estado();
+        }
+
+        // Deja constancia del pago en el historial de actividad y devuelve el resumen aprobado
+        registrarLog("pago_pedido", "Pedido #" + id + " pagado via " + metodo + " Ref=" + referencia);
+
+        return Map.of(
+                "idPedido", id,
+                "referencia", referencia,
+                "metodo", metodo,
+                "estadoPago", "APROBADO",
+                "estadoPedido", nuevoEstado,
+                "numeroFactura", factura.getNumeroFactura()
+        );
+    }
+
+    // Anula formalmente una factura mediante nota crédito sin borrar el historial y devuelve las unidades a bodega (solo administrador)
+    @Operation(summary = "Emitir nota credito o ajuste administrativo de factura (auditable, sin borrar historial)")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PostMapping("/{id}/nota-credito")
+    @Transactional
+    public Map<String, String> emitirNotaCredito(@PathVariable Integer id,
+                                                 @RequestBody(required = false) Map<String, String> body) {
+        // Toma la razón escrita por el administrador o usa un motivo general si quedó en blanco
+        String motivo = body != null && StringUtils.hasText(body.get("motivo"))
+                ? body.get("motivo").trim()
+                : "Ajuste administrativo solicitado por gerencia";
+
+        // Comprueba que la factura exista y que no tenga ya una nota crédito emitida
+        Factura factura = facturaRepository.findByIdPedido(id)
+                .orElseThrow(() -> ApiException.notFound("No existe factura generada para este pedido"));
+        if ("nota_credito".equalsIgnoreCase(factura.getEstado())) {
+            throw ApiException.conflict("Esta factura ya tiene una nota crédito emitida");
+        }
+        factura.setEstado("nota_credito");
+        facturaRepository.save(factura);
+
+        // Devuelve los productos al inventario si el pedido todavía no había sido cancelado
+        PedidoResponse pedido = pedidoService.obtener(id);
+        if (!EstadoPedido.CANCELADO.equals(pedido.estado())) {
+            if (EstadoPedido.permiteTransicion(pedido.estado(), EstadoPedido.CANCELADO)) {
+                pedidoService.cambiarEstado(id, EstadoPedido.CANCELADO,
+                        "Cancelado por nota crédito " + factura.getNumeroFactura(),
+                        usuarioActual.idOpcional());
+            } else if (pedido.detalles() != null) {
+                for (var det : pedido.detalles()) {
+                    inventarioService.reintegrarPorCancelacion(
+                            det.idProducto(),
+                            det.cantidad(),
+                            "Reingreso por nota credito " + factura.getNumeroFactura(),
+                            usuarioActual.idOpcional());
+                }
+            }
+        }
+
+        // Deja constancia de la nota crédito en el historial de actividad y devuelve la confirmación
+        registrarLog("nota_credito_factura", "Factura " + factura.getNumeroFactura() + " | Motivo: " + motivo);
+        return Map.of("estado", "nota_credito", "numeroFactura", factura.getNumeroFactura(), "motivo", motivo);
+    }
+
+    // Arma la hoja imprimible de la factura mostrando solo los datos de esta compra y sin información interna
+    private String construirDocumentoHtmlFactura(FacturaDetalleResponse f) {
+        // Prepara una fila de tabla por cada producto comprado con su cantidad, precio y subtotal
+        StringBuilder filas = new StringBuilder();
+        if (f.items() != null) {
+            for (var it : f.items()) {
+                filas.append("<tr><td>").append(esc(it.producto())).append("</td>")
+                     .append("<td style='text-align:center'>").append(it.cantidad()).append("</td>")
+                     .append("<td style='text-align:right'>").append(moneda(it.precioUnitario())).append("</td>")
+                     .append("<td style='text-align:right'>").append(moneda(it.subtotal())).append("</td></tr>");
+            }
+        }
+        String fecha = f.fechaEmision() != null
+                ? f.fechaEmision().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "";
+        // Rellena la plantilla visual del comprobante con los datos de la empresa, del comprador y el código CUFE
+        return """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>%s - TECNISECURE</title>
+              <style>
+                body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:24px;background:#f5f7fa}
+                .marco{max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #dde3ea;border-radius:10px;padding:26px}
+                .cab{border-bottom:2px solid #0a192f;padding-bottom:12px;margin-bottom:16px}
+                .cab-derecha{margin-top:10px}
+                table{width:100%%;border-collapse:collapse;margin:14px 0}
+                th,td{border-bottom:1px solid #ddd;padding:9px 8px;text-align:left;font-size:14px}
+                th{background:#f3f6fa}
+                .tot{text-align:right;line-height:1.8;margin-top:8px}
+                .cufe{margin-top:18px;font-size:11px;color:#555;word-break:break-all;border-top:1px dashed #ccc;padding-top:12px}
+                @media (max-width:520px){
+                  body{padding:10px}
+                  .marco{padding:16px}
+                  th,td{font-size:12px;padding:6px 4px}
+                }
+              </style>
+            </head>
+            <body>
+              <div class="marco">
+              <div class="cab">
+                <div>
+                  <h2 style="margin:0 0 4px 0">%s</h2>
+                  <div>NIT: %s · %s</div>
+                  <div style="font-size:12px;color:#555">%s</div>
+                </div>
+                <div class="cab-derecha">
+                  <h3 style="margin:0 0 4px 0;color:#0077b6">FACTURA %s</h3>
+                  <div>Fecha: %s</div>
+                  <div>Estado: <strong>%s</strong></div>
+                </div>
+              </div>
+              <div style="margin-bottom:12px;font-size:14px;line-height:1.7">
+                <strong>Comprador:</strong> %s<br>
+                <strong>Correo:</strong> %s<br>
+                <strong>Dirección entrega:</strong> %s<br>
+                <strong>Pago:</strong> %s
+              </div>
+              <table>
+                <thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">V. Unitario</th><th style="text-align:right">Subtotal</th></tr></thead>
+                <tbody>%s</tbody>
+              </table>
+              <div class="tot">
+                <div>Base gravable: <strong>%s</strong></div>
+                <div>IVA (%s%%): <strong>%s</strong></div>
+                <div style="font-size:18px;margin-top:6px">TOTAL: <strong>%s</strong></div>
+              </div>
+              <div class="cufe"><strong>CUFE:</strong> %s</div>
+              <p style="margin-top:20px;font-size:12px;color:#777;text-align:center">
+                Gracias por confiar en TECNISECURE. Este mensaje fue generado automáticamente.
+              </p>
+              </div>
+            </body>
+            </html>
+            """.formatted(
+                esc(f.numeroFactura()),
+                esc(f.emisorRazonSocial()), esc(f.emisorNit()), esc(f.emisorRegimen()), esc(f.resolucionDian()),
+                esc(f.numeroFactura()), esc(fecha), esc((f.estadoFactura() != null ? f.estadoFactura() : "emitida").toUpperCase()),
+                esc(f.clienteNombre()), esc(f.clienteCorreo()),
+                esc(StringUtils.hasText(f.clienteDireccion()) ? f.clienteDireccion() : "Recoge en tienda"),
+                esc(StringUtils.hasText(f.metodoPago()) ? f.metodoPago() : "Por confirmar"),
+                filas.toString(),
+                moneda(f.subtotalBase()),
+                f.ivaPct() != null ? f.ivaPct().toPlainString() : "19",
+                moneda(f.ivaValor()),
+                moneda(f.total()),
+                esc(f.cufe()));
+    }
+
+    // Convierte un número a formato de pesos colombianos para mostrarlo en la factura
+    private String moneda(BigDecimal v) {
+        return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(v != null ? v.doubleValue() : 0);
+    }
+
+    // Limpia símbolos especiales en los textos del cliente para que no dañen el diseño del comprobante
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    // Guarda en el registro de actividad quién realizó el pago o la anulación de factura
+    private void registrarLog(String accion, String detalle) {
+        LogActividad log = new LogActividad();
+        log.setIdUsuario(usuarioActual.idOpcional());
+        log.setAccion(accion);
+        log.setDetalle(detalle);
+        logRepository.save(log);
+    }
+
+    // Genera un sello digital único que identifica de forma irrepetible a cada factura (CUFE)
+    private String calcularCufe(String semilla) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(semilla.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest).toUpperCase();
+        } catch (NoSuchAlgorithmException e) {
+            return Long.toHexString(semilla.hashCode()).toUpperCase();
+        }
+    }
+}

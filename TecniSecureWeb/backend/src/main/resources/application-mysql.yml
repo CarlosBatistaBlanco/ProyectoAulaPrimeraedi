@@ -1,0 +1,42 @@
+# Este archivo contiene los ajustes opcionales que se activan cuando la tienda se publica
+# en internet conectada a una base de datos externa en la nube en lugar del archivo local.
+# Asegura comunicación cifrada, mantiene viva la conexión y apaga herramientas locales de prueba.
+
+spring:
+  # Conexión cifrada y con soporte de tildes hacia un servidor de base de datos externo o en la nube
+  datasource:
+    url: ${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:tecnicsecure}?sslMode=${DB_SSL_MODE:REQUIRED}&enabledTLSProtocols=TLSv1.2,TLSv1.3&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Bogota}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    # Manejo liviano de conexiones con señales periódicas para que el servidor en la nube no cierre la sesión
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:5}
+      minimum-idle: 1
+      max-lifetime: 300000
+      keepalive-time: 60000
+      connection-timeout: 20000
+
+  # Ajusta el guardado automático de tablas para el formato de base de datos externa
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.MySQLDialect}
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.MySQLDialect}
+
+  # Cierra la consola web de pruebas locales por seguridad cuando la tienda está publicada en internet
+  h2:
+    console:
+      enabled: false
+
+tecnisecure:
+  # Apaga el respaldo automático en archivo local porque la base de datos en la nube hace sus propias copias
+  respaldo:
+    habilitado: false
+  # Permite encender el envío de facturas y avisos por correo en el sitio publicado
+  mail:
+    habilitado: ${MAIL_ENABLED:false}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    remitente: ${MAIL_FROM:no-responder@tecnisecure.com}

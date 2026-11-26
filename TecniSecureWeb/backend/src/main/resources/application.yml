@@ -1,0 +1,143 @@
+# Este archivo es el tablero principal de ajustes de la tienda y se lee cada vez que
+# el servidor se enciende. Aquí se definen el puerto web, dónde se guardan los datos y
+# fotos, cuánto duran las sesiones, el bloqueo por claves fallidas, el correo y el chat
+# con inteligencia artificial.
+
+# Número de puerta web por donde entra la tienda (por defecto el puerto 8080)
+server:
+  port: ${PORT:${APP_PORT:8080}}
+
+# Nombre interno con el que se identifica la tienda al encenderse
+spring:
+  application:
+    name: tecnicsecure-api
+
+  # Base de datos interna guardada en un solo archivo dentro de la carpeta del proyecto.
+  # No hace falta instalar programas aparte: toda la información viaja con la tienda
+  # y se puede respaldar copiando el archivo de datos.
+  datasource:
+    url: jdbc:h2:file:./data/tecnicsecure;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;AUTO_SERVER=TRUE
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.h2.Driver
+    # Cantidad de canales abiertos al mismo tiempo hacia los datos para atender varios clientes a la vez
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  # Reglas automáticas para crear tablas nuevas si faltan y mantener intactos los datos ya guardados
+  jpa:
+    hibernate:
+      # Crea estructuras nuevas automáticamente sin borrar lo que ya existe
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+    show-sql: false
+
+  # Pantalla técnica opcional para revisar la base de datos local desde el navegador
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Ajuste de respuestas: evita enviar datos vacíos y usa siempre la hora oficial de Colombia
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: America/Bogota
+
+  # Peso máximo permitido al subir fotos de productos, fotos de perfil o evidencias (5 MB por archivo)
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+  # Datos de conexión con la cuenta de correo que envía las facturas y avisos a los clientes
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 8000
+          writetimeout: 8000
+
+  # Indica dónde están las páginas visuales de la tienda para mostrarlas en el mismo sitio web
+  web:
+    resources:
+      static-locations: file:../frontend/,classpath:/static/
+
+# Reglas propias del funcionamiento y la seguridad de la tienda
+tecnisecure:
+  # Sello secreto y tiempo de duración de los pases de sesión (2 horas de uso y 7 días para renovar)
+  jwt:
+    # Conviene cambiar esta clave secreta al publicar la tienda en internet (mínimo 32 caracteres)
+    secret: ${JWT_SECRET:5b3f8d2a91c64e7fb0a4d8e2c6f19b7a3d5e8f2c4b6a9d1e3f7c8b2a5d9e4f6c}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+    refresh-expiration-minutes: ${JWT_REFRESH_MINUTES:10080}
+  # Protección al iniciar sesión: después de 5 claves equivocadas bloquea la cuenta durante 15 minutos
+  security:
+    max-intentos-fallidos: 5
+    bloqueo-minutos: 15
+  captcha:
+    # Clave secreta para firmar las preguntas anti-robots; si queda vacía se inventa una nueva en cada arranque
+    secreto: ${CAPTCHA_SECRET:}
+  # Carpeta donde se guardan las fotos y documentos que suben los usuarios
+  uploads:
+    dir: ${UPLOADS_DIR:../frontend/uploads}
+  # Direcciones web locales con permiso para comunicarse con la tienda
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8080,http://127.0.0.1:8080,http://localhost:5500,http://127.0.0.1:5500}
+  # Encendido del envío de correos y dirección que aparece como remitente en las facturas
+  mail:
+    habilitado: ${MAIL_ENABLED:false}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    remitente: ${MAIL_FROM:no-responder@tecnisecure.com}
+  # Correo y clave inicial con los que se crea la cuenta del Administrador Principal la primera vez
+  admin:
+    correo: ${ADMIN_CORREO:admin@tecnicsecure.com}
+    password: ${ADMIN_PASSWORD:Admin123!}
+  # Conexión opcional del asistente virtual del chat público con inteligencia artificial externa.
+  # Si no se ingresa una clave, el chat sigue funcionando con respuestas propias y pasa a un asesor humano.
+  ia:
+    habilitado: ${DEEPSEEK_ENABLED:true}
+    api-key: ${DEEPSEEK_API_KEY:}
+    url: ${DEEPSEEK_URL:https://api.deepseek.com/chat/completions}
+    modelo: ${DEEPSEEK_MODEL:deepseek-chat}
+    timeout-segundos: ${DEEPSEEK_TIMEOUT:12}
+
+# Dirección y orden alfabético de la página interactiva de pruebas de la tienda
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+# Revisión rápida de estado para saber si la tienda sigue encendida y respondiendo bien
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    mail:
+      # Como el envío de correo es opcional, solo se revisa si está encendido para evitar esperas innecesarias
+      enabled: ${MAIL_ENABLED:false}
+
+# Cantidad de mensajes informativos que el servidor muestra en pantalla mientras trabaja
+logging:
+  level:
+    com.tecnicsecure: INFO

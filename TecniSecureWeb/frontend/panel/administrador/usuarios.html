@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!--
+  Esta es la pantalla de Usuarios dentro del panel del administrador.
+  Desde aquí se visualizan todas las cuentas registradas en el sistema sin importar su tipo,
+  con herramientas para buscar, filtrar por perfil, crear cuentas nuevas, editar datos o bloquear accesos.
+-->
+<html lang="es">
+<!-- Datos básicos de la página, diseño del panel, colores y permiso para instalarla en el celular -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuarios | TECNISECURE</title>
+<link rel="icon" href="../../img/logo/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/validaciones.css">
+<link rel="stylesheet" href="../../css/auth.css">
+<link rel="stylesheet" href="../../css/panel.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TecniSecure">
+<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+</head>
+<body class="panel-body" data-rol="administrador">
+<div class="panel-layout">
+
+  <!-- Menú lateral para moverse entre las secciones del panel del administrador -->
+  <aside class="panel-sidebar" id="panelSidebar">
+    <a href="../../index.html" class="panel-sidebar__logo logo">
+      <img src="../../img/logo/logo-claro.svg" alt="TECNISECURE" class="logo__claro">
+      <img src="../../img/logo/logo.svg" alt="TECNISECURE" class="logo__oscuro">
+    </a>
+<nav class="panel-menu">
+    <span class="panel-menu__seccion">Principal</span>
+    <a href="index.html" class="panel-menu__item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a href="usuarios.html" class="panel-menu__item"><i class="fa-solid fa-users"></i> Usuarios</a>
+    <a href="perfil.html" class="panel-menu__item"><i class="fa-solid fa-user"></i> Mi perfil</a>
+    <a href="direcciones.html" class="panel-menu__item"><i class="fa-solid fa-location-dot"></i> Dirección</a>
+    <span class="panel-menu__seccion">Operación</span>
+    <a href="empleados.html" class="panel-menu__item"><i class="fa-solid fa-id-badge"></i> Empleados</a>
+    <a href="tareas.html" class="panel-menu__item"><i class="fa-solid fa-list-check"></i> Tareas y Desempeño</a>
+    <a href="clientes.html" class="panel-menu__item"><i class="fa-solid fa-user-tie"></i> Clientes</a>
+    <a href="productos.html" class="panel-menu__item"><i class="fa-solid fa-box"></i> Productos</a>
+    <a href="inventario.html" class="panel-menu__item"><i class="fa-solid fa-warehouse"></i> Inventario</a>
+    <a href="pedidos.html" class="panel-menu__item"><i class="fa-solid fa-cart-shopping"></i> Pedidos</a>
+    <a href="facturacion.html" class="panel-menu__item"><i class="fa-solid fa-file-invoice"></i> Facturación</a>
+    <span class="panel-menu__seccion">Análisis</span>
+    <a href="reportes.html" class="panel-menu__item"><i class="fa-solid fa-chart-line"></i> Reportes</a>
+    <a href="soporte.html" class="panel-menu__item"><i class="fa-solid fa-headset"></i> Atención al cliente</a>
+    <a href="chat.html" class="panel-menu__item"><i class="fa-solid fa-comments"></i> Chat con clientes</a>
+    <a href="auditoria.html" class="panel-menu__item"><i class="fa-solid fa-clipboard-list"></i> Auditoría</a>
+    <a href="respaldo.html" class="panel-menu__item"><i class="fa-solid fa-database"></i> Respaldo de BD</a>
+</nav>
+  </aside>
+  <div class="panel-overlay" id="panelOverlay"></div>
+
+  <div class="panel-contenido">
+    <!-- Barra superior del panel con el título de la sección, cambio de tema, notificaciones y cierre de sesión -->
+    <header class="panel-topbar">
+      <button class="panel-toggle" id="panelToggle" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="panel-topbar__titulo">Usuarios</h1>
+      <div class="panel-topbar__usuario">
+        <button type="button" class="btn-tema" title="Cambiar tema claro/oscuro">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="panel-notificaciones">
+          <button class="panel-noti-btn" id="botonNotificaciones" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="panel-noti-contador" id="notificacionesContador" style="display:none">0</span>
+          </button>
+          <div class="panel-noti-dropdown" id="dropdownNotificaciones">
+            <div class="panel-noti-dropdown__header">
+              <span>Notificaciones</span>
+              <a href="#" id="marcarNotificaciones">Marcar todas como leídas</a>
+            </div>
+            <ul id="listaNotificaciones">
+              <li class="vacio">Cargando notificaciones…</li>
+            </ul>
+          </div>
+        </div>
+
+        <span class="panel-topbar__nombre"><span data-nombre-usuario>…</span>
+          <small data-rol-usuario></small>
+        </span>
+        <div class="panel-avatar" data-avatar-usuario>·</div>
+        <a href="#" class="panel-logout" title="Cerrar sesión" onclick="cerrarSesionPanel(); return false;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <main class="panel-main">
+<!-- Tabla con todas las cuentas registradas, barra de búsqueda, filtro por tipo de usuario y botón para crear una cuenta nueva -->
+<div class="panel-box" data-rol-fijo="">
+  <h2 class="panel-box__titulo"><i class="fa-solid fa-users"></i> Usuarios del sistema</h2>
+  <div class="panel-toolbar">
+    <div class="panel-toolbar__filtros">
+      <input type="search" id="buscarUsuario" class="panel-toolbar__input" placeholder="Buscar por nombre o correo…">
+      <select id="filtroRolUsuario" class="panel-toolbar__select">
+        <option value="">Todos los roles</option>
+        <option value="administrador">Administrador</option>
+        <option value="empleado">Empleado</option>
+        <option value="cliente">Cliente</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn--primario" id="btnNuevoUsuario">
+      <i class="fa-solid fa-user-plus"></i> Nuevo usuario
+    </button>
+  </div>
+  <div class="panel-tabla-wrap">
+    <table class="panel-tabla">
+      <thead><tr><th>Nombre</th><th>Correo</th><th>Documento</th><th>Rol</th><th>Estado</th><th>Registrado</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaUsuarios"><tr><td colspan="7">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Ventana emergente con el formulario para crear o editar los datos y permisos de una cuenta -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal-caja modal-caja--ancha">
+    <h3 id="tituloModalUsuario"><i class="fa-solid fa-user"></i> Usuario</h3>
+    <form id="formUsuario" class="panel-form">
+      <input type="hidden" name="idUsuario">
+      <div class="campo">
+        <label>Nombre completo *</label>
+        <input type="text" name="nombre" required maxlength="120">
+      </div>
+      <div class="campo">
+        <label>Correo electrónico *</label>
+        <input type="email" name="correo" required maxlength="150">
+      </div>
+      <div class="campo">
+        <label>Documento</label>
+        <input type="text" name="documento" maxlength="30">
+      </div>
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="text" name="telefono" maxlength="30">
+      </div>
+      <div class="campo">
+        <label>Rol *</label>
+        <select name="rol" required>
+          <option value="cliente">Cliente</option>
+          <option value="empleado">Empleado</option>
+          <option value="administrador">Administrador</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label id="etiquetaPasswordUsuario">Contraseña *</label>
+        <input type="password" name="password" minlength="6" maxlength="100" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="campo">
+        <label class="panel-check"><input type="checkbox" name="activo" checked> Cuenta activa</label>
+      </div>
+      <div class="campo">
+        <label class="panel-check"><input type="checkbox" name="bloqueado"> Cuenta bloqueada</label>
+      </div>
+      <p id="respuestaUsuario" class="form-respuesta campo--full"></p>
+      <div class="panel-form__acciones">
+        <button type="button" class="btn btn--secundario" onclick="cerrarModal('modalUsuario')">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+    </main>
+  </div>
+</div>
+
+<!-- Archivos que le dan funcionamiento interactivo a esta pantalla: listado de usuarios, guardado de cambios y controles del panel -->
+<script src="../../js/api.js"></script>
+<script src="../../js/validaciones.js"></script>
+<script src="../../js/websocket.js"></script>
+<script src="../../js/tema.js"></script>
+<script src="../../js/panel.js"></script>
+<script src="../../js/paginas-panel.js"></script>
+</body>
+</html>

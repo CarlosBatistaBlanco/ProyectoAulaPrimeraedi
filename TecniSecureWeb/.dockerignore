@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+backend/target
+backend/data
+database
+mobile-android
+*.md
+*.bat
+*.ps1
+docker-compose.yml
